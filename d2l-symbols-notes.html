@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D2L 符号表可视化笔记 · 图解与推导</title>
+<style>
+:root{
+  --bg:#F6F7F9; --surface:#FFFFFF; --surface-muted:#F0F1F4;
+  --text:#18181B; --text-muted:#5B5B66; --border:rgba(24,24,27,0.10);
+  --brand:#0FDC78; --brand-deep:#02743B; --brand-soft:#E5FFF2; --brand-text:#004D26;
+  --code-bg:#17171A; --code-text:#E5E5E5;
+  --shadow:0 4px 24px rgba(24,24,27,0.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#101013; --surface:#1A1A1F; --surface-muted:#232329;
+    --text:#E9E9EE; --text-muted:#9C9CA8; --border:rgba(233,233,238,0.10);
+    --brand:#32F08C; --brand-deep:#32F08C; --brand-soft:#004D26; --brand-text:#B4FDD9;
+    --code-bg:#0C0C0E; --code-text:#E9E9EE;
+    --shadow:0 4px 24px rgba(0,0,0,0.4);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:16px/1.75 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+a{color:var(--brand-deep);text-decoration:none}
+a:hover{text-decoration:underline}
+.hero{background:linear-gradient(135deg,#02743B 0%,#0FDC78 100%);color:#fff;padding:56px 24px 48px;text-align:center}
+.hero h1{font-size:32px;letter-spacing:1px;margin-bottom:12px}
+.hero p{font-size:15px;opacity:.92;max-width:640px;margin:0 auto}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;box-shadow:var(--shadow);margin:-40px auto 40px;position:relative}
+.toc b{display:block;font-size:14px;color:var(--text-muted);margin-bottom:8px;letter-spacing:2px}
+.toc ol{list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.toc a{display:inline-block;padding:6px 14px;border:1px solid var(--border);border-radius:999px;font-size:14px;background:var(--surface-muted)}
+.toc a:hover{border-color:var(--brand);color:var(--brand-text);text-decoration:none;background:var(--brand-soft)}
+section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 34px;box-shadow:var(--shadow);margin-bottom:32px}
+section h2{font-size:24px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+section h2 .tag{font-size:13px;font-weight:600;background:var(--brand-soft);color:var(--brand-text);padding:3px 12px;border-radius:999px}
+section h3{font-size:18px;margin:28px 0 10px;padding-left:12px;border-left:4px solid var(--brand)}
+section p{margin:10px 0;color:var(--text)}
+section p.muted{color:var(--text-muted);font-size:14px}
+.fig{background:var(--surface-muted);border:1px solid var(--border);border-radius:12px;padding:18px;margin:18px 0}
+.fig-cap{text-align:center;font-size:13px;color:var(--text-muted);margin-top:10px}
+pre{background:var(--code-bg);color:var(--code-text);border-radius:10px;padding:16px 18px;overflow-x:auto;font:13px/1.7 "JetBrains Mono",Consolas,monospace;margin:14px 0}
+pre .c{color:#7DD3A0}.hl{color:var(--brand)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--surface-muted);font-weight:600}
+td code, p code{background:var(--surface-muted);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font:12.5px Consolas,monospace}
+.kpi{color:var(--brand-text);font-weight:700}
+.note{background:var(--brand-soft);border-left:4px solid var(--brand);border-radius:0 10px 10px 0;padding:12px 16px;font-size:14.5px;margin:14px 0}
+/* SVG 公共样式 */
+svg{width:100%;height:auto;display:block}
+.th{fill:var(--text);font:500 14px/20px system-ui,sans-serif}
+.ts{fill:var(--text-muted);font:400 12px/18px system-ui,sans-serif}
+.tsh{fill:var(--brand-text);font:500 12px/18px system-ui,sans-serif}
+.fm{fill:var(--text);font:500 13px/20px Consolas,monospace}
+.fmh{fill:var(--brand-text);font:500 13px/20px Consolas,monospace}
+.num{fill:var(--text);font:500 13px/20px Consolas,monospace}
+.numh{fill:var(--brand-text);font:500 13px/20px Consolas,monospace}
+.kpi2{fill:var(--brand-text);font:650 16px/24px system-ui,sans-serif}
+.ax{stroke:var(--text-muted);stroke-width:1.5;fill:none;stroke-linecap:round}
+.cell{fill:var(--surface);stroke:var(--text-muted);stroke-width:1}
+.cellhl{fill:var(--brand-soft);stroke:var(--brand);stroke-width:1.2}
+.mut{stroke:var(--border)}
+footer{text-align:center;color:var(--text-muted);font-size:13px;padding:24px 0 8px}
+@media (max-width:640px){.hero h1{font-size:24px}section{padding:22px 18px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>📒 D2L 符号表 · 可视化笔记</h1>
+  <p>《动手学深度学习》附录符号表全解析 —— 18 张图解 + 逐条推导 + 项目实例对照，纯自包含单文件，可离线翻阅</p>
+</div>
+
+<div class="wrap">
+
+<nav class="toc">
+  <b>目 录</b>
+  <ol>
+    <li><a href="#ch1">一、数字与张量</a></li>
+    <li><a href="#ch2">二、集合论</a></li>
+    <li><a href="#ch3">三、函数与运算符</a></li>
+    <li><a href="#ch4">四、微积分</a></li>
+    <li><a href="#ch5">五、概率与信息论</a></li>
+    <li><a href="#ch6">六、复杂度 O(·)</a></li>
+    <li><a href="#ch7">七、一页速记卡</a></li>
+  </ol>
+</nav>
+
+<!-- ================= 第一章 ================= -->
+<section id="ch1">
+<h2>一、数字与张量 <span class="tag">x · X · 𝕏</span></h2>
+<p>深度学习的数据只有四种形态，区别只在<strong>维度数量</strong>。下标负责定位：<code>xᵢ</code> = 向量第 i 个元素，<code>Xᵢⱼ</code> = 矩阵第 i 行第 j 列（行列都从 1 数起）。</p>
+
+<div class="fig">
+<svg viewBox="0 0 720 272" role="img" aria-label="标量向量矩阵张量层级图">
+  <text class="th" x="88" y="52" text-anchor="middle">标量 x</text>
+  <rect class="cell" x="40" y="110" width="96" height="56" rx="8"/>
+  <text class="num" x="88" y="145" text-anchor="middle" font-size="16">3.14</text>
+  <text class="ts" x="88" y="250" text-anchor="middle">0 维 · 一个数</text>
+  <text class="th" x="206" y="52" text-anchor="middle">向量 x</text>
+  <rect class="cell" x="180" y="70" width="52" height="40" rx="6"/>
+  <rect class="cell" x="180" y="110" width="52" height="40" rx="6"/>
+  <rect class="cell" x="180" y="150" width="52" height="40" rx="6"/>
+  <rect class="cell" x="180" y="190" width="52" height="40" rx="6"/>
+  <text class="num" x="206" y="96" text-anchor="middle">x₁</text>
+  <text class="num" x="206" y="136" text-anchor="middle">x₂</text>
+  <text class="num" x="206" y="176" text-anchor="middle">x₃</text>
+  <text class="num" x="206" y="216" text-anchor="middle">x₄</text>
+  <text class="ts" x="206" y="250" text-anchor="middle">1 维 · 形状 (4,)</text>
+  <text class="th" x="370" y="52" text-anchor="middle">矩阵 X</text>
+  <rect class="cell" x="290" y="70" width="40" height="40" rx="4"/>
+  <rect class="cell" x="330" y="70" width="40" height="40" rx="4"/>
+  <rect class="cell" x="370" y="70" width="40" height="40" rx="4"/>
+  <rect class="cell" x="410" y="70" width="40" height="40" rx="4"/>
+  <rect class="cell" x="290" y="110" width="40" height="40" rx="4"/>
+  <rect class="cell" x="330" y="110" width="40" height="40" rx="4"/>
+  <rect class="cellhl" x="370" y="110" width="40" height="40" rx="4"/>
+  <rect class="cell" x="410" y="110" width="40" height="40" rx="4"/>
+  <rect class="cell" x="290" y="150" width="40" height="40" rx="4"/>
+  <rect class="cell" x="330" y="150" width="40" height="40" rx="4"/>
+  <rect class="cell" x="370" y="150" width="40" height="40" rx="4"/>
+  <rect class="cell" x="410" y="150" width="40" height="40" rx="4"/>
+  <text class="num" x="310" y="96" text-anchor="middle">1</text>
+  <text class="num" x="350" y="96" text-anchor="middle">2</text>
+  <text class="num" x="390" y="96" text-anchor="middle">3</text>
+  <text class="num" x="430" y="96" text-anchor="middle">4</text>
+  <text class="num" x="310" y="136" text-anchor="middle">5</text>
+  <text class="num" x="350" y="136" text-anchor="middle">6</text>
+  <text class="numh" x="390" y="136" text-anchor="middle">7</text>
+  <text class="num" x="430" y="136" text-anchor="middle">8</text>
+  <text class="num" x="310" y="176" text-anchor="middle">9</text>
+  <text class="num" x="350" y="176" text-anchor="middle">1.5</text>
+  <text class="num" x="390" y="176" text-anchor="middle">7</text>
+  <text class="num" x="430" y="176" text-anchor="middle">2</text>
+  <text class="ts" x="370" y="214" text-anchor="middle" fill="var(--brand-text)">X[2][3] = 7（第2行第3列）</text>
+  <text class="ts" x="370" y="250" text-anchor="middle">2 维 · 形状 (3,4)</text>
+  <text class="th" x="594" y="42" text-anchor="middle">张量 X</text>
+  <rect class="cell" x="520" y="102" width="80" height="80" rx="6"/>
+  <line x1="560" y1="102" x2="560" y2="182" class="mut"/>
+  <line x1="520" y1="142" x2="600" y2="142" class="mut"/>
+  <rect class="cell" x="540" y="82" width="80" height="80" rx="6"/>
+  <line x1="580" y1="82" x2="580" y2="162" class="mut"/>
+  <line x1="540" y1="122" x2="620" y2="122" class="mut"/>
+  <rect class="cell" x="560" y="62" width="80" height="80" rx="6"/>
+  <line x1="600" y1="62" x2="600" y2="142" class="mut"/>
+  <line x1="560" y1="102" x2="640" y2="102" class="mut"/>
+  <text class="ts" x="594" y="250" text-anchor="middle">3 维 · 形状 (2,2,2)</text>
+</svg>
+<div class="fig-cap">图 1 · 数据的四个层级：维度越高形状越复杂，下标定位到具体的数</div>
+</div>
+
+<h3>|X| 基数：集合论变成网络超参的桥</h3>
+<p><code>|X|</code> 读作 "X 的基数" = 集合中<strong>互不相同</strong>元素的个数。它一次性决定分类网络的输出层宽度、one-hot 长度、softmax 选项数。</p>
+
+<div class="fig">
+<svg viewBox="0 0 720 276" role="img" aria-label="基数与分类任务示意图">
+  <defs><marker id="sb-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker></defs>
+  <text class="th" x="170" y="44" text-anchor="middle">X = {0, 1, 2, …, 9} 标签集合</text>
+  <rect x="40" y="64" width="260" height="180" rx="12" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <text class="kpi2" x="170" y="104" text-anchor="middle">card(X) = 10</text>
+  <circle cx="76" cy="152" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="124" cy="152" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="172" cy="152" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="220" cy="152" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="268" cy="152" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="76" cy="198" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="124" cy="198" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="172" cy="198" r="19" fill="var(--brand-soft)" stroke="#0FDC78" stroke-width="1.5"/>
+  <circle cx="220" cy="198" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="268" cy="198" r="19" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <text class="num" x="76" y="157" text-anchor="middle">0</text><text class="num" x="124" y="157" text-anchor="middle">1</text>
+  <text class="num" x="172" y="157" text-anchor="middle">2</text><text class="num" x="220" y="157" text-anchor="middle">3</text>
+  <text class="num" x="268" y="157" text-anchor="middle">4</text><text class="num" x="76" y="203" text-anchor="middle">5</text>
+  <text class="num" x="124" y="203" text-anchor="middle">6</text><text class="numh" x="172" y="203" text-anchor="middle">7</text>
+  <text class="num" x="220" y="203" text-anchor="middle">8</text><text class="num" x="268" y="203" text-anchor="middle">9</text>
+  <path d="M 310 154 L 352 154" stroke="#0FDC78" stroke-width="2" fill="none" marker-end="url(#sb-ar)"/>
+  <text class="th" x="520" y="44" text-anchor="middle">|X| 决定模型输出的两件事</text>
+  <rect x="360" y="64" width="320" height="180" rx="12" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="376" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="406" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="436" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="466" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="496" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="526" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="556" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="586" y="84" width="24" height="24" rx="4" fill="var(--brand-soft)" stroke="#0FDC78"/>
+  <rect x="616" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <rect x="646" y="84" width="24" height="24" rx="4" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <text class="numh" x="598" y="102" text-anchor="middle">1</text>
+  <text class="ts" x="520" y="132" text-anchor="middle">① one-hot 长度 = |X|，真实类（7=horse）处为 1</text>
+  <rect x="379" y="204" width="18" height="10" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="409" y="200" width="18" height="14" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="439" y="202" width="18" height="12" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="469" y="170" width="18" height="44" rx="2" fill="#0FDC78"/>
+  <rect x="499" y="204" width="18" height="10" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="529" y="202" width="18" height="12" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="559" y="200" width="18" height="14" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="589" y="190" width="18" height="24" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="619" y="202" width="18" height="12" rx="2" fill="#0FDC78" opacity=".45"/>
+  <rect x="649" y="204" width="18" height="10" rx="2" fill="#0FDC78" opacity=".45"/>
+  <text class="ts" x="520" y="236" text-anchor="middle">② softmax 输出 |X| 个 logit → 概率分布（总和 = 1）</text>
+  <text class="ts" x="360" y="268" text-anchor="middle">你的四个项目：CIFAR-10 |X|=10 · FER2013 |X|=7 · 足球检测 |X|=3</text>
+</svg>
+<div class="fig-cap">图 2 · |X| 从标签集合一路决定网络最后一层的设计</div>
+</div>
+
+<pre>集合例子：
+X = {cat, dog, bird}   →  |X| = 3
+Z = {1, 1, 2, 2, 3}    →  |Z| = 3   <span class="c"># 集合互异性：重复只算一次</span>
+∅ = {}                 →  |∅| = 0
+
+项目对照：
+01 检测 {player, football, referee}  → |X| = 3   YOLO 每格 3 个 anchor
+03 表情 {angry…surprise}             → |X| = 7   nn.Linear(256, 7)
+04 检索 CIFAR-10 十类                → |X| = 10  Precision 按 10 类判定</pre>
+</section>
+
+<!-- ================= 第二章 ================= -->
+<section id="ch2">
+<h2>二、集合论 <span class="tag">∪ ∩ \</span></h2>
+<p>描述"元素与集合的关系"：<strong>∪</strong> 并集（或）、<strong>∩</strong> 交集（与）、<strong>\</strong> 差集（相对补集）、<strong>|X|</strong> 基数（个数）；<code>ℤ</code> 整数、<code>ℝ</code> 实数、<code>ℝⁿ</code> n 维向量空间、<code>ℝᵃˣᵇ</code> a 行 b 列矩阵集合。</p>
+
+<div class="fig">
+<svg viewBox="0 0 720 248" role="img" aria-label="集合并交差韦恩图">
+  <text class="th" x="140" y="44" text-anchor="middle">A ∪ B（并集）</text>
+  <circle cx="114" cy="140" r="48" fill="var(--brand-soft)" stroke="#0FDC78" stroke-width="1.5"/>
+  <circle cx="166" cy="140" r="48" fill="var(--brand-soft)" stroke="#0FDC78" stroke-width="1.5"/>
+  <text class="th" x="96" y="144">A</text><text class="th" x="180" y="144">B</text>
+  <text class="ts" x="140" y="224" text-anchor="middle">属于 A 或 B（重叠算一次）</text>
+  <text class="th" x="360" y="44" text-anchor="middle">A ∩ B（交集）</text>
+  <circle cx="334" cy="140" r="48" fill="var(--surface-muted)" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="386" cy="140" r="48" fill="var(--surface-muted)" stroke="var(--border)" stroke-width="1.5"/>
+  <path d="M 360 100.4 A 48 48 0 0 1 360 179.6 A 48 48 0 0 1 360 100.4 Z" fill="#0FDC78" stroke="#0FDC78" stroke-width="1.5"/>
+  <text class="th" x="308" y="144">A</text><text class="th" x="406" y="144">B</text>
+  <text class="ts" x="360" y="224" text-anchor="middle">同时属于 A 和 B</text>
+  <text class="th" x="580" y="44" text-anchor="middle">A \ B（差集）</text>
+  <circle cx="554" cy="140" r="48" fill="var(--brand-soft)" stroke="#0FDC78" stroke-width="1.5"/>
+  <circle cx="606" cy="140" r="48" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+  <text class="th" x="532" y="144">A</text><text class="th" x="624" y="144">B</text>
+  <text class="ts" x="580" y="224" text-anchor="middle">属于 A 但不属于 B（月牙区）</text>
+</svg>
+<div class="fig-cap">图 3 · 集合三运算：绿色区域 = 运算结果</div>
+</div>
+</section>
+
+<!-- ================= 第三章 ================= -->
+<section id="ch3">
+<h2>三、函数与运算符 <span class="tag">f(·) ⊙ ᵀ ⁻¹</span></h2>
+
+<h3>3.1 七个核心运算符</h3>
+<div class="fig">
+<svg viewBox="0 0 720 312" role="img" aria-label="七运算符图解">
+  <defs>
+    <marker id="s3-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="s3-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+  <text class="th" x="105" y="40" text-anchor="middle">f(·) 函数</text>
+  <circle cx="58" cy="88" r="16" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <text class="fm" x="58" y="93" text-anchor="middle">x</text>
+  <path d="M 76 88 L 96 88" stroke="#5B5B66" stroke-width="1.5" fill="none" marker-end="url(#s3-ar)"/>
+  <rect class="cellhl" x="98" y="68" width="44" height="40" rx="8"/>
+  <text class="fmh" x="120" y="93" text-anchor="middle">f</text>
+  <path d="M 142 88 L 160 88" stroke="#5B5B66" stroke-width="1.5" fill="none" marker-end="url(#s3-ar)"/>
+  <circle cx="176" cy="88" r="16" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <text class="fm" x="176" y="93" text-anchor="middle">y</text>
+  <text class="ts" x="117" y="140" text-anchor="middle">塞进 x，吐出 f(x)</text>
+  <text class="th" x="265" y="40" text-anchor="middle">log(·) / exp(·)</text>
+  <path class="ax" d="M 225 128 L 318 128 M 232 135 L 232 62"/>
+  <path d="M 238 118 Q 275 96 312 72" stroke="#0FDC78" stroke-width="2" fill="none"/>
+  <path d="M 238 122 Q 280 120 306 68" stroke="var(--text)" stroke-width="2" fill="none"/>
+  <text class="ts" x="300" y="66">exp</text><text class="ts" x="296" y="112">log</text>
+  <text class="ts" x="265" y="140" text-anchor="middle">log 缓增 · exp 爆炸式增长</text>
+  <text class="th" x="425" y="40" text-anchor="middle">1𝒳 指示函数</text>
+  <text class="fm" x="425" y="74" text-anchor="middle">条件成立？</text>
+  <path d="M 400 84 L 378 112" stroke="#0FDC78" stroke-width="1.5" fill="none" marker-end="url(#s3-arb)"/>
+  <path d="M 450 84 L 472 112" stroke="#5B5B66" stroke-width="1.5" fill="none" marker-end="url(#s3-ar)"/>
+  <rect class="cellhl" x="356" y="114" width="40" height="30" rx="8"/>
+  <text class="fmh" x="376" y="135" text-anchor="middle">1</text>
+  <rect class="cell" x="454" y="114" width="40" height="30" rx="8"/>
+  <text class="fm" x="474" y="135" text-anchor="middle">0</text>
+  <text class="ts" x="425" y="172" text-anchor="middle">成立=1 · 不成立=0（开关）</text>
+  <text class="th" x="590" y="40" text-anchor="middle">(·)ᵀ 转置</text>
+  <rect class="cell" x="530" y="62" width="28" height="28" rx="4"/>
+  <rect class="cell" x="558" y="62" width="28" height="28" rx="4"/>
+  <rect class="cellhl" x="586" y="62" width="28" height="28" rx="4"/>
+  <rect class="cell" x="530" y="90" width="28" height="28" rx="4"/>
+  <rect class="cell" x="558" y="90" width="28" height="28" rx="4"/>
+  <rect class="cellhl" x="586" y="90" width="28" height="28" rx="4"/>
+  <path d="M 622 92 L 646 92" stroke="#5B5B66" stroke-width="1.5" fill="none" marker-end="url(#s3-ar)"/>
+  <rect class="cell" x="652" y="54" width="26" height="26" rx="4"/>
+  <rect class="cellhl" x="678" y="54" width="26" height="26" rx="4"/>
+  <rect class="cell" x="652" y="80" width="26" height="26" rx="4"/>
+  <rect class="cellhl" x="678" y="80" width="26" height="26" rx="4"/>
+  <rect class="cell" x="652" y="106" width="26" height="26" rx="4"/>
+  <rect class="cell" x="678" y="106" width="26" height="26" rx="4"/>
+  <text class="ts" x="590" y="164" text-anchor="middle">行变列：(2,3) → (3,2)</text>
+  <text class="th" x="150" y="204" text-anchor="middle">X⁻¹ 矩阵的逆</text>
+  <rect x="52" y="222" width="46" height="46" rx="8" fill="var(--surface)" stroke="#5B5B66"/>
+  <text class="fm" x="75" y="250" text-anchor="middle">X</text>
+  <text class="fm" x="110" y="250" text-anchor="middle">×</text>
+  <rect x="126" y="222" width="46" height="46" rx="8" fill="var(--surface)" stroke="#5B5B66"/>
+  <text class="fm" x="149" y="250" text-anchor="middle">X⁻¹</text>
+  <text class="fm" x="186" y="250" text-anchor="middle">=</text>
+  <rect class="cellhl" x="202" y="222" width="46" height="46" rx="8"/>
+  <text class="fmh" x="225" y="250" text-anchor="middle">I</text>
+  <text class="ts" x="150" y="294" text-anchor="middle">像数的倒数：X·X⁻¹ = 单位阵 I</text>
+  <text class="th" x="390" y="204" text-anchor="middle">⊙ 按元素相乘</text>
+  <rect class="cell" x="292" y="222" width="36" height="36" rx="4"/>
+  <rect class="cell" x="328" y="222" width="36" height="36" rx="4"/>
+  <rect class="cell" x="292" y="258" width="36" height="36" rx="4"/>
+  <rect class="cell" x="328" y="258" width="36" height="36" rx="4"/>
+  <text class="num" x="310" y="245" text-anchor="middle">1</text><text class="num" x="346" y="245" text-anchor="middle">2</text>
+  <text class="num" x="310" y="281" text-anchor="middle">3</text><text class="num" x="346" y="281" text-anchor="middle">4</text>
+  <text class="fm" x="378" y="270" text-anchor="middle">⊙</text>
+  <rect class="cell" x="396" y="222" width="36" height="36" rx="4"/>
+  <rect class="cell" x="432" y="222" width="36" height="36" rx="4"/>
+  <rect class="cell" x="396" y="258" width="36" height="36" rx="4"/>
+  <rect class="cell" x="432" y="258" width="36" height="36" rx="4"/>
+  <text class="num" x="414" y="245" text-anchor="middle">5</text><text class="num" x="450" y="245" text-anchor="middle">6</text>
+  <text class="num" x="414" y="281" text-anchor="middle">7</text><text class="num" x="450" y="281" text-anchor="middle">8</text>
+  <text class="fm" x="480" y="270" text-anchor="middle">=</text>
+  <rect class="cellhl" x="494" y="222" width="36" height="36" rx="4"/>
+  <rect class="cellhl" x="530" y="222" width="36" height="36" rx="4"/>
+  <rect class="cellhl" x="494" y="258" width="36" height="36" rx="4"/>
+  <rect class="cellhl" x="530" y="258" width="36" height="36" rx="4"/>
+  <text class="numh" x="512" y="245" text-anchor="middle">5</text><text class="numh" x="548" y="245" text-anchor="middle">12</text>
+  <text class="numh" x="512" y="281" text-anchor="middle">21</text><text class="numh" x="548" y="281" text-anchor="middle">32</text>
+  <text class="ts" x="390" y="314" text-anchor="middle">对应格子相乘（Hadamard 积，≠ 矩阵乘法）</text>
+  <text class="th" x="632" y="204" text-anchor="middle">[·,·] 连结</text>
+  <rect class="cell" x="588" y="228" width="44" height="20" rx="4"/>
+  <rect class="cell" x="588" y="256" width="44" height="20" rx="4"/>
+  <text class="num" x="610" y="243" text-anchor="middle">1 2</text>
+  <text class="num" x="610" y="271" text-anchor="middle">3 4</text>
+  <path d="M 638 247 L 656 247" stroke="#5B5B66" stroke-width="1.5" fill="none" marker-end="url(#s3-ar)"/>
+  <rect class="cellhl" x="662" y="242" width="54" height="20" rx="4"/>
+  <text class="numh" x="689" y="257" text-anchor="middle">1 2 3 4</text>
+  <text class="ts" x="632" y="314" text-anchor="middle">首尾拼成一条</text>
+</svg>
+<div class="fig-cap">图 4 · 七个核心运算符的工作方式</div>
+</div>
+
+<table>
+<tr><th>符号</th><th>含义</th><th>一句话理解</th></tr>
+<tr><td><code>f(·)</code></td><td>函数</td><td>圆括号里塞输入，吐出输出</td></tr>
+<tr><td><code>log / exp</code></td><td>自然对数 / 指数</td><td>Softmax、交叉熵的基石，互为反函数</td></tr>
+<tr><td><code>1𝒳</code></td><td>指示函数</td><td>条件成立=1，不成立=0（ReLU = x·1{x&gt;0}）</td></tr>
+<tr><td><code>(·)ᵀ</code></td><td>转置</td><td>行变列：(2,3) → (3,2)</td></tr>
+<tr><td><code>X⁻¹</code></td><td>矩阵的逆</td><td>X·X⁻¹ = I（<strong>单位矩阵</strong>：对角全 1、其余全 0，相当于矩阵世界的"1"）</td></tr>
+<tr><td><code>⊙</code></td><td>按元素相乘</td><td>对应格子相乘，形状不变（≠ 矩阵乘法）</td></tr>
+<tr><td><code>[·,·]</code></td><td>连结</td><td>向量首尾拼接</td></tr>
+<tr><td><code>Σ / ∏</code></td><td>连加 / 连乘</td><td>Σᵢ xᵢ = x₁+x₂+… 累加；∏ᵢ xᵢ = x₁·x₂·… 连乘到底</td></tr>
+<tr><td><code>:=</code></td><td>定义</td><td>左边起名字、右边给定义（读作"记作"），如 loss := L</td></tr>
+</table>
+
+<div class="fig">
+<svg viewBox="0 0 720 236" role="img" aria-label="单位矩阵连加连乘定义符号图解">
+  <!-- 三面板分隔线 -->
+  <line class="mut" x1="240" y1="20" x2="240" y2="216"/>
+  <line class="mut" x1="480" y1="20" x2="480" y2="216"/>
+
+  <!-- 面板一：单位矩阵 I = 矩阵世界的"1" -->
+  <text class="th" x="120" y="38" text-anchor="middle">I 单位矩阵 · 矩阵的"1"</text>
+  <rect class="cellhl" x="81" y="60" width="26" height="26" rx="3"/>
+  <rect class="cell" x="107" y="60" width="26" height="26" rx="3"/>
+  <rect class="cell" x="133" y="60" width="26" height="26" rx="3"/>
+  <rect class="cell" x="81" y="86" width="26" height="26" rx="3"/>
+  <rect class="cellhl" x="107" y="86" width="26" height="26" rx="3"/>
+  <rect class="cell" x="133" y="86" width="26" height="26" rx="3"/>
+  <rect class="cell" x="81" y="112" width="26" height="26" rx="3"/>
+  <rect class="cell" x="107" y="112" width="26" height="26" rx="3"/>
+  <rect class="cellhl" x="133" y="112" width="26" height="26" rx="3"/>
+  <text class="numh" x="94" y="78" text-anchor="middle">1</text>
+  <text class="num" x="120" y="78" text-anchor="middle">0</text>
+  <text class="num" x="146" y="78" text-anchor="middle">0</text>
+  <text class="num" x="94" y="104" text-anchor="middle">0</text>
+  <text class="numh" x="120" y="104" text-anchor="middle">1</text>
+  <text class="num" x="146" y="104" text-anchor="middle">0</text>
+  <text class="num" x="94" y="130" text-anchor="middle">0</text>
+  <text class="num" x="120" y="130" text-anchor="middle">0</text>
+  <text class="numh" x="146" y="130" text-anchor="middle">1</text>
+  <text class="ts" x="120" y="166" text-anchor="middle">对角全 1 · 其余全 0</text>
+  <text class="fmh" x="120" y="196" text-anchor="middle">X · I = X</text>
+  <text class="ts" x="120" y="222" text-anchor="middle">乘它等于没乘，就像乘 1</text>
+
+  <!-- 面板二：Σ 连加 / ∏ 连乘 = 批量汇总 -->
+  <text class="th" x="360" y="38" text-anchor="middle">Σ 连加 / ∏ 连乘</text>
+  <rect class="cell" x="270" y="64" width="46" height="40" rx="6"/>
+  <rect class="cell" x="337" y="64" width="46" height="40" rx="6"/>
+  <rect class="cell" x="404" y="64" width="46" height="40" rx="6"/>
+  <text class="num" x="293" y="90" text-anchor="middle" font-size="16">2</text>
+  <text class="num" x="360" y="90" text-anchor="middle" font-size="16">3</text>
+  <text class="num" x="427" y="90" text-anchor="middle" font-size="16">5</text>
+  <text class="fmh" x="360" y="140" text-anchor="middle">Σ = 2+3+5 = 10</text>
+  <text class="fmh" x="360" y="168" text-anchor="middle">∏ = 2×3×5 = 30</text>
+  <text class="ts" x="360" y="204" text-anchor="middle">一排数：全部加起来 / 全部乘起来</text>
+
+  <!-- 面板三：:= 定义 = 起名字 -->
+  <text class="th" x="600" y="38" text-anchor="middle">:= 定义 · 起名字</text>
+  <text class="fm" x="600" y="104" text-anchor="middle" font-size="20">loss := L</text>
+  <text class="ts" x="600" y="140" text-anchor="middle">左边随便起名 · 右边放真内容</text>
+  <text class="fmh" x="600" y="174" text-anchor="middle">mse := mean((ŷ−y)²)</text>
+  <text class="ts" x="600" y="208" text-anchor="middle">读作"记作"：给内容贴标签</text>
+</svg>
+<div class="fig-cap">图 5 · 补齐的运算符三件套：I 乘了白乘 · Σ/∏ 批量加乘 · := 起名字</div>
+</div>
+
+<h3>3.2 点积 ⟨x, y⟩：相似度的度量</h3>
+<pre><span class="c"># 坐标定义：对应分量相乘再求和</span>
+⟨x, y⟩ = x₁y₁ + x₂y₂ + … + xₙyₙ = Σᵢ xᵢyᵢ
+
+例：x = [1,2,3], y = [4,5,6]
+⟨x,y⟩ = 1×4 + 2×5 + 3×6 = 4 + 10 + 18 = <span class="hl">32</span>
+
+<span class="c"># 几何意义</span>
+⟨x,y⟩ = ‖x‖·‖y‖·cosθ
+θ=0° 同向 → cos=1 点积最大（最相似）
+θ=90° 垂直 → cos=0 点积=0（无关）
+余弦相似度 = ⟨x,y⟩ / (‖x‖·‖y‖)  ∈ [-1, 1]
+
+<span class="c"># 项目04：特征 L2 归一化后 ‖x‖=1 → 余弦相似度 = 点积</span>
+<span class="c"># → 10000 张图检索只需一次矩阵乘法</span></pre>
+
+<div class="fig">
+<svg viewBox="0 0 720 250" role="img" aria-label="点积几何意义与余弦相似度图解">
+  <defs>
+    <marker id="sA-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="sA-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+  <!-- 分隔线：左=夹角公式来源，右=三种夹角的相似度直觉 -->
+  <line class="mut" x1="360" y1="20" x2="360" y2="230"/>
+
+  <!-- 左：两个向量的夹角 θ -->
+  <text class="th" x="195" y="40" text-anchor="middle">夹角越小 → 点积越大 → 越相似</text>
+  <path class="ax" d="M100 200 L320 200" marker-end="url(#sA-ar)"/>
+  <path d="M100 200 L240 92" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sA-arb)"/>
+  <path d="M170 200 A 70 70 0 0 0 155 157" stroke="#5B5B66" stroke-width="1.5" fill="none"/>
+  <text class="fm" x="182" y="178">θ</text>
+  <text class="ts" x="300" y="222">向量 x（地面方向）</text>
+  <text class="ts" x="248" y="88">y（你的朝向）</text>
+  <text class="fmh" x="195" y="244" text-anchor="middle">⟨x,y⟩ = ‖x‖·‖y‖·cosθ</text>
+
+  <!-- 右：三种典型夹角 -->
+  <text class="th" x="530" y="40" text-anchor="middle">三种夹角，三种关系</text>
+  <path d="M390 108 L450 108" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sA-arb)"/>
+  <path d="M390 122 L450 122" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sA-arb)"/>
+  <path d="M500 130 L560 130" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sA-arb)"/>
+  <path d="M530 152 L530 96" stroke="#5B5B66" stroke-width="2.5" fill="none" marker-end="url(#sA-ar)"/>
+  <path d="M590 108 L650 108" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sA-arb)"/>
+  <path d="M650 124 L590 124" stroke="#5B5B66" stroke-width="2.5" fill="none" marker-end="url(#sA-ar)"/>
+  <text class="ts" x="415" y="168" text-anchor="middle">θ = 0°</text>
+  <text class="ts" x="415" y="190" text-anchor="middle">cos=1 最相似</text>
+  <text class="ts" x="535" y="182" text-anchor="middle">θ = 90°</text>
+  <text class="ts" x="535" y="204" text-anchor="middle">cos=0 无关</text>
+  <text class="ts" x="640" y="168" text-anchor="middle">θ = 180°</text>
+  <text class="ts" x="640" y="190" text-anchor="middle">cos=−1 相反</text>
+  <text class="ts" x="530" y="232" text-anchor="middle">案例：项目04 检索 = 特征夹角小的图更像</text>
+</svg>
+<div class="fig-cap">图 6 · 点积的几何：余弦相似度"只看方向、不看长短"，归一化后 ∈ [−1,1]</div>
+</div>
+
+<h3>3.3 Lp 范数：p 决定距离的形状</h3>
+<pre>‖x‖ₚ = ( Σᵢ |xᵢ|ᵖ )^(1/p)
+
+p=1: ‖x‖₁ = |x₁|+|x₂|+…      曼哈顿距离（菱形）→ 稀疏解 → L1 正则
+p=2: ‖x‖₂ = √(x₁²+x₂²+…)     欧氏距离（圆形）→ 默认的 ‖·‖</pre>
+
+<div class="fig">
+<svg viewBox="0 0 720 316" role="img" aria-label="L1与L2单位球及稀疏解示意图">
+  <defs>
+    <marker id="s4-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="s4-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+  <text class="th" x="165" y="40" text-anchor="middle">① ‖w‖ = 1 的形状</text>
+  <path class="ax" d="M 75 170 L 255 170" marker-end="url(#s4-ar)"/>
+  <path class="ax" d="M 165 260 L 165 78" marker-end="url(#s4-ar)"/>
+  <polygon points="165,95 240,170 165,245 90,170" fill="var(--brand-soft)" stroke="#0FDC78" stroke-width="2"/>
+  <circle cx="165" cy="170" r="75" fill="none" stroke="var(--brand-deep)" stroke-width="2" stroke-dasharray="6 4"/>
+  <text class="tsh" x="196" y="146">L1 菱形</text>
+  <text class="ts" x="204" y="204" fill="var(--brand-deep)">L2 圆</text>
+  <text class="ts" x="246" y="188">w₁</text><text class="ts" x="172" y="90">w₂</text>
+  <text class="fm" x="165" y="292" text-anchor="middle">|w₁|+|w₂| = 1（菱）· w₁²+w₂² = 1（圆）</text>
+  <text class="ts" x="165" y="312" text-anchor="middle">菱形的四个角正好顶在坐标轴上</text>
+  <text class="th" x="505" y="40" text-anchor="middle">② L1 正则为什么产生稀疏解</text>
+  <path class="ax" d="M 385 170 L 665 170" marker-end="url(#s4-ar)"/>
+  <path class="ax" d="M 495 260 L 495 78" marker-end="url(#s4-ar)"/>
+  <polygon points="495,100 565,170 495,240 425,170" fill="var(--brand-soft)" stroke="#0FDC78" stroke-width="2"/>
+  <ellipse cx="548" cy="152" rx="34" ry="22" fill="none" stroke="#5B5B66" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <ellipse cx="548" cy="152" rx="56" ry="36" fill="none" stroke="#5B5B66" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <ellipse cx="548" cy="152" rx="78" ry="50" fill="none" stroke="#5B5B66" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="565" cy="170" r="6" fill="#0FDC78"/>
+  <path d="M 565 170 L 598 196" stroke="#0FDC78" stroke-width="1.5" fill="none" marker-end="url(#s4-arb)"/>
+  <text class="tsh" x="602" y="206">切点：w₂ 被压到 0</text>
+  <text class="ts" x="548" y="96">损失等高线（椭圆）</text>
+  <text class="ts" x="408" y="200">L1 约束</text>
+  <text class="fm" x="505" y="292" text-anchor="middle">min L(w)  s.t. ‖w‖₁ ≤ 1</text>
+  <text class="ts" x="505" y="312" text-anchor="middle">最优解落在轴角点 → 该维权重 = 0（特征被筛掉）</text>
+</svg>
+<div class="fig-cap">图 7 · L1 菱形 vs L2 圆形：棱角 + 损失等高线 = 稀疏解</div>
+</div>
+
+<div class="note">🔑 <strong>稀疏推导核心</strong>：损失等高线（椭圆）缩小后<strong>最先撞上菱形的角</strong>，而菱形的角正好落在坐标轴上 → 该维权重精确为 0。L2 是光滑的圆，没有角，权重只会变小不会归零。L1 在 0 点的"尖角"（梯度恒为 ±1）就是拖着权重往 0 走的恒定推力。</div>
+
+<table>
+<tr><th></th><th>L1 正则</th><th>L2 正则（岭回归）</th></tr>
+<tr><td>形状</td><td>菱形（有棱角）</td><td>圆形（光滑）</td></tr>
+<tr><td>结果</td><td><strong>稀疏</strong>：部分权重 = 0</td><td>平滑变小但不为 0</td></tr>
+<tr><td>用途</td><td>特征选择、压缩感知</td><td>防过拟合（PyTorch 的 weight_decay）</td></tr>
+</table>
+<pre>总损失 = 数据损失 + λ·‖w‖     <span class="c"># ‖w‖ 大 → 罚分高 → 不敢大权重拟合噪声</span>
+λ=0 不惩罚；λ 太大 → 欠拟合。深度学习默认用 L2（weight_decay=1e-4）</pre>
+</section>
+
+<!-- ================= 第四章 ================= -->
+<section id="ch4">
+<h2>四、微积分 <span class="tag">d ∂ ∇ ∫</span></h2>
+<p>四个符号是<strong>反向传播的全部数学工具</strong>：导数=切线斜率、偏导=单方向变化率、梯度=全方向最陡、积分=曲线下面积。</p>
+
+<div class="fig">
+<svg viewBox="0 0 720 268" role="img" aria-label="导数偏导梯度积分示意图">
+  <defs>
+    <marker id="s5-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+    <marker id="s5-arn" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+  </defs>
+  <text class="th" x="105" y="42" text-anchor="middle">① 导数 dy/dx</text>
+  <path class="ax" d="M 55 175 L 165 175" marker-end="url(#s5-arn)"/>
+  <path class="ax" d="M 55 175 L 55 78" marker-end="url(#s5-arn)"/>
+  <path d="M 62 168 Q 110 140 160 86" stroke="var(--text)" stroke-width="2" fill="none"/>
+  <path d="M 78 164 L 152 96" stroke="#0FDC78" stroke-width="2" fill="none"/>
+  <circle cx="110" cy="134" r="4" fill="#0FDC78"/>
+  <text class="fm" x="105" y="204" text-anchor="middle">斜率 = Δy/Δx</text>
+  <text class="ts" x="105" y="240" text-anchor="middle">瞬时变化率（切线）</text>
+  <text class="th" x="265" y="42" text-anchor="middle">② 偏导 ∂y/∂x</text>
+  <path class="ax" d="M 215 175 L 325 175" marker-end="url(#s5-arn)"/>
+  <path class="ax" d="M 215 175 L 215 78" marker-end="url(#s5-arn)"/>
+  <path d="M 222 168 Q 270 140 320 86" stroke="var(--text)" stroke-width="2" fill="none"/>
+  <path d="M 215 126 L 300 126" stroke="#5B5B66" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
+  <circle cx="262" cy="126" r="4" fill="var(--text)"/>
+  <text class="fm" x="265" y="204" text-anchor="middle">固定 y 只看 x</text>
+  <text class="ts" x="265" y="240" text-anchor="middle">切一刀，求一个方向的变化</text>
+  <text class="th" x="425" y="42" text-anchor="middle">③ 梯度 ∇y</text>
+  <ellipse cx="425" cy="130" rx="72" ry="46" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+  <ellipse cx="425" cy="130" rx="48" ry="30" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+  <ellipse cx="425" cy="130" rx="24" ry="15" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+  <circle cx="425" cy="130" r="4" fill="var(--text)"/>
+  <path d="M 425 130 L 476 110" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#s5-ar)"/>
+  <text class="fmh" x="470" y="100">∇</text>
+  <text class="fm" x="425" y="204" text-anchor="middle">∇f = [∂f/∂x₁, ∂f/∂x₂]</text>
+  <text class="ts" x="425" y="240" text-anchor="middle">指向最陡上升（下降取 −∇）</text>
+  <text class="th" x="585" y="42" text-anchor="middle">④ 定积分 ∫ₐᵇ</text>
+  <path class="ax" d="M 540 175 L 655 175" marker-end="url(#s5-arn)"/>
+  <path class="ax" d="M 540 175 L 540 78" marker-end="url(#s5-arn)"/>
+  <rect x="552" y="142" width="17" height="33" fill="var(--brand-soft)" stroke="#0FDC78"/>
+  <rect x="571" y="128" width="17" height="47" fill="var(--brand-soft)" stroke="#0FDC78"/>
+  <rect x="590" y="116" width="17" height="59" fill="var(--brand-soft)" stroke="#0FDC78"/>
+  <rect x="609" y="105" width="17" height="70" fill="var(--brand-soft)" stroke="#0FDC78"/>
+  <rect x="628" y="96" width="17" height="79" fill="var(--brand-soft)" stroke="#0FDC78"/>
+  <path d="M 552 152 Q 600 138 645 96" stroke="var(--text)" stroke-width="2" fill="none"/>
+  <text class="fm" x="585" y="204" text-anchor="middle">Σ 窄条 → 极限 = ∫</text>
+  <text class="ts" x="585" y="240" text-anchor="middle">曲线下的面积</text>
+</svg>
+<div class="fig-cap">图 8 · 微积分四符号：导数 · 偏导 · 梯度 · 积分</div>
+</div>
+
+<h3>推导 ① 导数 → 偏导 → 梯度（三步走）</h3>
+<pre><span class="c"># 第1步 导数（一元）：割线取极限变切线</span>
+dy/dx = lim[h→0] [f(x+h) − f(x)] / h
+f(x)=x² → f′(x) = lim [(x+h)²−x²]/h = lim (2xh+h²)/h = <span class="hl">2x</span>
+
+<span class="c"># 第2步 偏导（多元）：只让一个变量动，其他按住不动</span>
+f(x,y) = x² + 2y²
+∂f/∂x = 2x    <span class="c"># y 当常数（2y² 求导变 0）</span>
+∂f/∂y = 4y    <span class="c"># x 当常数</span>
+
+<span class="c"># 第3步 梯度：所有偏导拼成向量，指向"上坡最陡"</span>
+∇f = [2x, 4y]，在 (1,2) 处 = [2, 8]
+梯度下降走【负】方向：w ← w − η·∇L   <span class="c"># 下坡最陡，这就是训练的全部几何</span></pre>
+
+<div class="fig">
+<svg viewBox="0 0 720 250" role="img" aria-label="梯度与等高线下山几何图解">
+  <defs>
+    <marker id="sB-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="sB-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+
+  <!-- 左：损失等高线山谷，P 点的两个方向 -->
+  <text class="th" x="270" y="40" text-anchor="middle">损失的"地形图"：等高线一圈圈套向谷底</text>
+  <ellipse cx="270" cy="140" rx="185" ry="92" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <ellipse cx="270" cy="140" rx="135" ry="66" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <ellipse cx="270" cy="140" rx="85" ry="42" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <circle cx="270" cy="140" r="5" fill="#0FDC78"/>
+  <text class="tsh" x="270" y="164" text-anchor="middle">谷底 = loss 最小</text>
+
+  <!-- P 点与两个箭头：∇L 上坡、−∇L 下坡 -->
+  <circle cx="130" cy="112" r="6" fill="var(--surface)" stroke="#5B5B66" stroke-width="2"/>
+  <text class="ts" x="112" y="100" text-anchor="end">P 你在这</text>
+  <path d="M124 108 L70 78" stroke="#5B5B66" stroke-width="2.5" fill="none" marker-end="url(#sB-ar)"/>
+  <text class="ts" x="66" y="66" text-anchor="middle">∇L 指向最陡上坡</text>
+  <path d="M136 116 L196 136" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sB-arb)"/>
+  <text class="tsh" x="176" y="164" text-anchor="middle">−∇L 下山跨步</text>
+
+  <!-- 右：训练时每一步在做什么 -->
+  <line class="mut" x1="500" y1="50" x2="500" y2="226"/>
+  <text class="th" x="605" y="76" text-anchor="middle">每个 step 做三件事</text>
+  <text class="fmh" x="605" y="112" text-anchor="middle">w ← w − η·∇L</text>
+  <text class="ts" x="605" y="144" text-anchor="middle">① 站当前点量出 ∇L（最陡上坡）</text>
+  <text class="ts" x="605" y="170" text-anchor="middle">② 反着走 η 一小步（学习率）</text>
+  <text class="ts" x="605" y="196" text-anchor="middle">③ 到谷底 = loss 最小，训练收敛</text>
+  <text class="ts" x="605" y="226" text-anchor="middle">案例：YOLO 100 轮就是跨 100 轮这种步</text>
+</svg>
+<div class="fig-cap">图 9 · 梯度垂直等高线指向"最陡上坡"；训练永远沿 −∇L 反方向跨向谷底</div>
+</div>
+
+<h3>推导 ② 定积分（黎曼和取极限）</h3>
+<pre>∫ₐᵇ f(x)dx = lim[n→∞] Σᵢ f(xᵢ)·Δx     <span class="c"># [a,b] 切成 n 条窄矩形，Δx→0</span>
+例：∫₀¹ x² dx = [x³/3]₀¹ = <span class="hl">1/3</span>   <span class="c"># 抛物线下面积 = 0.333…</span></pre>
+<div class="note">🔗 <strong>关系链</strong>：导数（一元）→ 偏导（单方向）→ 梯度（全方向打包）→ 反向传播主角；积分是"由变化率还原总量"的逆运算。口诀：前向算损失 L，反向求 ∂L/∂w，参数沿 −∇ 方向更新。</div>
+
+<div class="fig">
+<svg viewBox="0 0 720 256" role="img" aria-label="计算图链式法则反向传播图解">
+  <defs>
+    <marker id="sD-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="sD-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+
+  <!-- 前向：绿线从 w 算到 L -->
+  <text class="tsh" x="360" y="40" text-anchor="middle">① 前向传播（绿）：从参数一路算出 loss</text>
+  <rect class="cell" x="60" y="58" width="80" height="46" rx="8"/>
+  <text class="th" x="100" y="86" text-anchor="middle">w = 2</text>
+  <path d="M146 81 L214 81" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sD-arb)"/>
+  <text class="ts" x="180" y="70" text-anchor="middle">× x=3</text>
+  <rect class="cell" x="220" y="58" width="90" height="46" rx="8"/>
+  <text class="th" x="265" y="86" text-anchor="middle">a = 6</text>
+  <path d="M316 81 L384 81" stroke="#0FDC78" stroke-width="2.5" fill="none" marker-end="url(#sD-arb)"/>
+  <text class="ts" x="350" y="70" text-anchor="middle">(a−y)², y=7</text>
+  <rect class="cellhl" x="390" y="58" width="100" height="46" rx="8"/>
+  <text class="th" x="440" y="86" text-anchor="middle">L = 1</text>
+
+  <!-- 反向：灰虚线把偏导一段段乘回去 -->
+  <text class="ts" x="360" y="140" text-anchor="middle">② 反向传播（灰虚线）：偏导沿箭头反方向接力相乘</text>
+  <path d="M470 172 L160 172" stroke="#5B5B66" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#sD-ar)"/>
+  <text class="ts" x="392" y="196" text-anchor="middle">∂L/∂a = 2(a−y) = −2</text>
+  <text class="ts" x="248" y="196" text-anchor="middle">∂a/∂w = x = 3</text>
+  <rect class="cell" x="40" y="150" width="106" height="44" rx="8"/>
+  <text class="fmh" x="93" y="178" text-anchor="middle">∂L/∂w = −6</text>
+
+  <!-- 结论 -->
+  <text class="fmh" x="360" y="226" text-anchor="middle">w ← 2 − η×(−6)   # 链式法则：把每段偏导乘起来 = ∂L/∂w</text>
+</svg>
+<div class="fig-cap">图 10 · 计算图上的链式法则：前向算 loss，反向把偏导一段段乘回去 —— "反向传播"名字的由来</div>
+</div>
+</section>
+
+<!-- ================= 第五章 ================= -->
+<section id="ch5">
+<h2>五、概率与信息论 <span class="tag">E Var H D<sub>KL</sub></span></h2>
+<p>生成模型与交叉熵损失的数学底座。五大块：期望方差（集中与离散）、条件概率、熵与自信息（不确定性）、KL 散度（分布差异）、协方差与相关（两两关系）。</p>
+
+<h3>5.0 先认脸：五个基础符号</h3>
+<table>
+<tr><th>符号</th><th>含义</th><th>一句话理解</th></tr>
+<tr><td><code>P(·)</code></td><td>概率分布</td><td>给每个可能结果发一个 [0,1] 的概率，全部加起来 = 1</td></tr>
+<tr><td><code>z ∼ P</code></td><td>服从分布 P</td><td>随机变量 z 是按分布 P 抽出来的（掷骰子 z ∼ 均匀分布）</td></tr>
+<tr><td><code>p(x)</code></td><td>概率密度 / 概率值</td><td>连续变量看密度（曲线下的面积才是概率），离散变量直接是概率</td></tr>
+<tr><td><code>X ⊥ Y</code></td><td>独立</td><td>知道 Y 对猜 X 毫无帮助：P(X,Y) = P(X)·P(Y)</td></tr>
+<tr><td><code>X ⊥ Y | Z</code></td><td>给定 Z 条件独立</td><td>固定 Z 之后，Y 对 X 就不再提供新信息</td></tr>
+</table>
+
+<div class="fig">
+<svg viewBox="0 0 720 404" role="img" aria-label="概率基础五符号案例图解">
+  <defs>
+    <marker id="s8-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="s8-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+  <!-- 四面板分隔线 -->
+  <line class="mut" x1="360" y1="16" x2="360" y2="388"/>
+  <line class="mut" x1="30" y1="206" x2="690" y2="206"/>
+
+  <!-- 面板A：P(·) 六面分布 + z ∼ P 抽取 -->
+  <text class="th" x="195" y="40" text-anchor="middle">P(·) 分布 + z ∼ P 抽取</text>
+  <text class="tsh" x="195" y="68" text-anchor="middle">z ∼ P → 抽一根，比如 z = 3</text>
+  <path d="M163 78 L163 108" stroke="#0FDC78" stroke-width="2" fill="none" marker-end="url(#s8-arb)"/>
+  <rect class="cellhl" x="45" y="114" width="36" height="56" rx="4"/>
+  <rect class="cellhl" x="95" y="114" width="36" height="56" rx="4"/>
+  <rect class="cellhl" x="145" y="114" width="36" height="56" rx="4"/>
+  <rect class="cellhl" x="195" y="114" width="36" height="56" rx="4"/>
+  <rect class="cellhl" x="245" y="114" width="36" height="56" rx="4"/>
+  <rect class="cellhl" x="295" y="114" width="36" height="56" rx="4"/>
+  <path class="ax" d="M40 170 L340 170"/>
+  <text class="ts" x="63" y="106" text-anchor="middle">1/6</text>
+  <text class="ts" x="313" y="106" text-anchor="middle">1/6</text>
+  <text class="ts" x="63" y="188" text-anchor="middle">1</text>
+  <text class="ts" x="113" y="188" text-anchor="middle">2</text>
+  <text class="ts" x="163" y="188" text-anchor="middle">3</text>
+  <text class="ts" x="213" y="188" text-anchor="middle">4</text>
+  <text class="ts" x="263" y="188" text-anchor="middle">5</text>
+  <text class="ts" x="313" y="188" text-anchor="middle">6</text>
+
+  <!-- 面板B：p(x) 概率密度曲线，面积即概率 -->
+  <text class="th" x="540" y="40" text-anchor="middle">p(x) 概率密度 · 面积即概率</text>
+  <path d="M400 170 C 460 40 620 40 670 170 Z" fill="var(--brand-soft)" stroke="none"/>
+  <path d="M400 170 C 460 40 620 40 670 170" stroke="#0FDC78" stroke-width="2.5" fill="none"/>
+  <path class="ax" d="M390 170 L684 170"/>
+  <text class="ts" x="600" y="122" text-anchor="middle">整块面积 = 1</text>
+  <text class="ts" x="600" y="148" text-anchor="middle">任取一段 → 面积 = 落进它的概率</text>
+  <text class="ts" x="678" y="190" text-anchor="middle">x</text>
+
+  <!-- 面板C：X ⊥ Y 独立，两枚硬币互不相干 -->
+  <text class="th" x="195" y="246" text-anchor="middle">X ⊥ Y · 独立：互不相干</text>
+  <rect class="cell" x="55" y="272" width="110" height="56" rx="8"/>
+  <text class="th" x="110" y="298" text-anchor="middle">X 硬币A</text>
+  <text class="ts" x="110" y="318" text-anchor="middle">抛出正面或反面</text>
+  <rect class="cell" x="225" y="272" width="110" height="56" rx="8"/>
+  <text class="th" x="280" y="298" text-anchor="middle">Y 硬币B</text>
+  <text class="ts" x="280" y="318" text-anchor="middle">抛出正面或反面</text>
+  <text class="th" x="195" y="308" text-anchor="middle" font-size="24">⊥</text>
+  <text class="ts" x="195" y="360" text-anchor="middle">知道 A 是正面，对猜 B 一点帮助都没有</text>
+
+  <!-- 面板D：X ⊥ Y | Z 条件独立，下雨把两个结果解耦 -->
+  <text class="th" x="540" y="246" text-anchor="middle">X ⊥ Y | Z · 固定 Z 后独立</text>
+  <rect class="cellhl" x="495" y="262" width="90" height="40" rx="8"/>
+  <text class="th" x="540" y="287" text-anchor="middle">Z 下雨</text>
+  <path d="M518 304 L472 328" stroke="#0FDC78" stroke-width="2" fill="none" marker-end="url(#s8-arb)"/>
+  <path d="M562 304 L608 328" stroke="#0FDC78" stroke-width="2" fill="none" marker-end="url(#s8-arb)"/>
+  <rect class="cell" x="395" y="330" width="90" height="40" rx="8"/>
+  <text class="th" x="440" y="355" text-anchor="middle">X 地湿</text>
+  <rect class="cell" x="595" y="330" width="90" height="40" rx="8"/>
+  <text class="th" x="640" y="355" text-anchor="middle">Y 带伞</text>
+  <path d="M492 350 L588 350" stroke="#5B5B66" stroke-width="1.5" stroke-dasharray="5 4" fill="none"/>
+  <text class="tsh" x="540" y="344" text-anchor="middle">⊥ | Z</text>
+  <text class="ts" x="540" y="394" text-anchor="middle">已知"下雨"后，地湿与带伞互不透露信息</text>
+</svg>
+<div class="fig-cap">图 11 · 概率五符号案例：抽签（z∼P）· 密度曲线（p(x)）· 两对"断开"的关系（⊥ 与 ⊥|Z）</div>
+</div>
+
+<h3>5.1 期望与方差：重心与偏离</h3>
+<div class="fig">
+<svg viewBox="0 0 720 300" role="img" aria-label="期望与方差数轴示意图">
+  <defs>
+    <marker id="s7-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+    <marker id="s7-arb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#0FDC78"/></marker>
+  </defs>
+  <text class="th" x="190" y="40" text-anchor="middle">① 期望 E[X] = 概率加权的重心</text>
+  <path class="ax" d="M 60 170 L 335 170" marker-end="url(#s7-ar)"/>
+  <line x1="195" y1="76" x2="195" y2="212" stroke="#0FDC78" stroke-width="2" stroke-dasharray="6 5"/>
+  <text class="tsh" x="195" y="68" text-anchor="middle">E[X] = 3.5</text>
+  <circle cx="70" cy="130" r="11" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="120" cy="130" r="11" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="170" cy="130" r="11" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="220" cy="130" r="11" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="270" cy="130" r="11" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="320" cy="130" r="11" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <text class="ts" x="70" y="112" text-anchor="middle">1/6</text>
+  <text class="ts" x="320" y="112" text-anchor="middle">1/6</text>
+  <text class="ts" x="70" y="197" text-anchor="middle">1</text><text class="ts" x="120" y="197" text-anchor="middle">2</text>
+  <text class="ts" x="170" y="197" text-anchor="middle">3</text><text class="ts" x="220" y="197" text-anchor="middle">4</text>
+  <text class="ts" x="270" y="197" text-anchor="middle">5</text><text class="ts" x="320" y="197" text-anchor="middle">6</text>
+  <text class="fm" x="190" y="246" text-anchor="middle">E[X] = Σ x·p(x) = 3.5</text>
+  <text class="ts" x="190" y="272" text-anchor="middle">六个面等概率（点等大）→ 期望停在正中间</text>
+  <text class="th" x="515" y="40" text-anchor="middle">② 方差 Var(X) = 偏离的平方的期望</text>
+  <path class="ax" d="M 390 170 L 675 170" marker-end="url(#s7-ar)"/>
+  <line x1="525" y1="76" x2="525" y2="212" stroke="#0FDC78" stroke-width="2" stroke-dasharray="6 5"/>
+  <text class="tsh" x="525" y="68" text-anchor="middle">μ = E[X]</text>
+  <path d="M 465 126 L 520 126" stroke="#0FDC78" stroke-width="1.5" fill="none" marker-start="url(#s7-arb)" marker-end="url(#s7-arb)"/>
+  <text class="tsh" x="492" y="116" text-anchor="middle">−60</text>
+  <path d="M 530 148 L 635 148" stroke="#0FDC78" stroke-width="1.5" fill="none" marker-start="url(#s7-arb)" marker-end="url(#s7-arb)"/>
+  <text class="tsh" x="582" y="138" text-anchor="middle">+90</text>
+  <circle cx="460" cy="170" r="8" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="640" cy="170" r="8" fill="var(--surface-muted)" stroke="#5B5B66" stroke-width="1.5"/>
+  <text class="ts" x="460" y="197" text-anchor="middle">点A</text>
+  <text class="ts" x="640" y="197" text-anchor="middle">点B（离群）</text>
+  <text class="fm" x="515" y="246" text-anchor="middle">Var(X) = E[(X − μ)²]</text>
+  <text class="ts" x="515" y="272" text-anchor="middle">90²=8100 ≫ 60²=3600：离群点被平方加重惩罚</text>
+</svg>
+<div class="fig-cap">图 12 · 期望是重心，方差用平方惩罚偏离</div>
+</div>
+
+<pre><span class="c"># 方差推导（一气呵成）</span>
+Var(X) = E[(X−μ)²]           <span class="c"># 定义</span>
+       = E[X²] − 2μ·E[X] + μ²  <span class="c"># 展开 + 期望线性</span>
+       = E[X²] − 2μ² + μ²      <span class="c"># E[X]=μ 代入</span>
+       = <span class="hl">E[X²] − (E[X])²</span>      ✅ 最终公式
+标准差 σ = √Var(X)（回到原单位）
+Cov(X,Y) = E[XY] − E[X]·E[Y]（协方差的计算形式）</pre>
+
+<h3>5.2 自信息与熵：把"意外"量成 bit</h3>
+<div class="fig">
+<svg viewBox="0 0 720 300" role="img" aria-label="自信息与熵示意图">
+  <text class="th" x="190" y="40" text-anchor="middle">自信息 I(x) = −log₂ p：越意外越长</text>
+  <text class="ts" x="112" y="98" text-anchor="end">p = 1/2</text>
+  <rect x="120" y="80" width="25" height="26" rx="4" fill="#0FDC78"/>
+  <text class="ts" x="151" y="98">1 bit</text>
+  <text class="ts" x="112" y="142" text-anchor="end">p = 1/8</text>
+  <rect x="120" y="124" width="75" height="26" rx="4" fill="#0FDC78"/>
+  <text class="ts" x="201" y="142">3 bit</text>
+  <text class="ts" x="112" y="186" text-anchor="end">p = 1/256</text>
+  <rect x="120" y="168" width="200" height="26" rx="4" fill="#0FDC78"/>
+  <text class="tsh" x="312" y="186" text-anchor="end" fill="#004D26">8 bit</text>
+  <text class="fm" x="190" y="234" text-anchor="middle">I(x) = −log₂ p(x)</text>
+  <text class="ts" x="190" y="262" text-anchor="middle">例：中彩票 p=1/10⁴ → 意外度 ≈ 13.3 bit</text>
+  <text class="th" x="530" y="40" text-anchor="middle">熵 H = 自信息的平均（总乱度）</text>
+  <text class="tsh" x="460" y="84" text-anchor="middle">公平币 H = 1 bit</text>
+  <rect x="425" y="130" width="30" height="80" rx="4" fill="#0FDC78"/>
+  <rect x="465" y="130" width="30" height="80" rx="4" fill="#0FDC78"/>
+  <text class="ts" x="440" y="230" text-anchor="middle">0.5</text>
+  <text class="ts" x="480" y="230" text-anchor="middle">0.5</text>
+  <text class="ts" x="460" y="250" text-anchor="middle">最乱：最难猜</text>
+  <text class="tsh" x="610" y="84" text-anchor="middle">作弊币 H ≈ 0.29</text>
+  <rect x="575" y="58" width="30" height="152" rx="4" fill="#0FDC78"/>
+  <rect x="615" y="202" width="30" height="8" rx="4" fill="#0FDC78"/>
+  <text class="ts" x="590" y="230" text-anchor="middle">0.95</text>
+  <text class="ts" x="630" y="230" text-anchor="middle">0.05</text>
+  <text class="ts" x="610" y="250" text-anchor="middle">几乎总出正面：好猜</text>
+  <text class="fm" x="530" y="280" text-anchor="middle">H(P) = −Σ p(x)·log₂ p(x)</text>
+</svg>
+<div class="fig-cap">图 13 · 分布越平 → 熵越大越难猜；越陡 → 熵越小越好猜</div>
+</div>
+
+<pre>自信息：I(x) = −log p(x)   <span class="c"># 要几个二选一才能猜中</span>
+熵：    H(X) = E[I(x)] = −Σ p(x)·log p(x)   <span class="c"># 意外的加权平均</span>
+公平币 p=0.5 → H=1 bit（最不确定）；必然事件 p=1 → H=0（零信息）
+
+<span class="c"># 派生链：交叉熵 → KL 散度</span>
+交叉熵 H(P,Q) = −Σ p·log q          <span class="c"># 用 Q 编码 P 的数据</span>
+D_KL(P‖Q) = H(P,Q) − H(P) = Σ p·log(p/q)   <span class="c"># 额外浪费</span></pre>
+
+<h3>5.3 KL 散度：完整推导</h3>
+<div class="fig">
+<svg viewBox="0 0 720 268" role="img" aria-label="条件概率与KL散度示意图">
+  <text class="th" x="180" y="40" text-anchor="middle">条件概率 P(X | Y)</text>
+  <rect x="60" y="60" width="240" height="140" rx="8" fill="var(--surface-muted)" stroke="var(--border)"/>
+  <circle cx="150" cy="130" r="52" fill="var(--surface)" stroke="#5B5B66" stroke-width="1.5"/>
+  <circle cx="215" cy="130" r="52" fill="none" stroke="#5B5B66" stroke-width="1.5"/>
+  <path d="M 182.5 84.7 A 52 52 0 0 1 182.5 175.3 A 52 52 0 0 1 182.5 84.7 Z" fill="#0FDC78" stroke="#0FDC78" stroke-width="1.5"/>
+  <text class="th" x="118" y="134">Y</text><text class="th" x="244" y="134">X</text>
+  <text class="th" x="182" y="134" fill="#004D26">∩</text>
+  <text class="fm" x="180" y="230" text-anchor="middle">P(X|Y) = P(X∩Y) / P(Y)</text>
+  <text class="ts" x="180" y="256" text-anchor="middle">只在 Y 的地盘里看 X 占多少</text>
+  <text class="th" x="540" y="40" text-anchor="middle">KL 散度 D_KL(P ‖ Q)</text>
+  <path class="ax" d="M 420 175 L 665 175"/>
+  <path class="ax" d="M 420 175 L 420 62"/>
+  <rect x="440" y="143" width="18" height="32" fill="var(--brand-deep)"/>
+  <rect x="460" y="150" width="18" height="25" fill="#85FABF"/>
+  <rect x="490" y="118" width="18" height="57" fill="var(--brand-deep)"/>
+  <rect x="510" y="135" width="18" height="40" fill="#85FABF"/>
+  <rect x="540" y="88" width="18" height="87" fill="var(--brand-deep)"/>
+  <rect x="560" y="118" width="18" height="57" fill="#85FABF"/>
+  <rect x="590" y="104" width="18" height="71" fill="var(--brand-deep)"/>
+  <rect x="610" y="130" width="18" height="45" fill="#85FABF"/>
+  <rect x="640" y="148" width="18" height="27" fill="var(--brand-deep)"/>
+  <rect x="440" y="66" width="12" height="10" rx="2" fill="var(--brand-deep)"/>
+  <text class="ts" x="458" y="75">P 真实</text>
+  <rect x="520" y="66" width="12" height="10" rx="2" fill="#85FABF"/>
+  <text class="ts" x="538" y="75">Q 模型</text>
+  <text class="fm" x="540" y="230" text-anchor="middle">D = Σ p(x)·log( p(x)/q(x) )</text>
+  <text class="ts" x="540" y="256" text-anchor="middle">P 与 Q 差异越大，D 越大（≥0）</text>
+</svg>
+<div class="fig-cap">图 14 · 条件概率（面积比）与 KL 散度（双分布对比）</div>
+</div>
+
+<pre><span class="c"># 第一步 两笔平均账</span>
+H(P)   = E_P[−log p] = −Σ p·log p       <span class="c"># 真实需要的 bit（熵）</span>
+H(P,Q) = E_P[−log q] = −Σ p·log q       <span class="c"># 用 Q 编码 P 的平均花费（交叉熵）</span>
+
+<span class="c"># 第二步 相减 = 额外浪费</span>
+D_KL(P‖Q) = H(P,Q) − H(P)
+          = −Σ p·log q + Σ p·log p
+          = Σ p·(log p − log q)
+          = <span class="hl">Σ p(x)·log( p(x)/q(x) )</span>    ✅ 标准公式
+
+<span class="c"># 数值验证：P=[0.5,0.5], Q=[0.1,0.9]（log₂）</span>
+H(P)=1 · H(P,Q)=1.736 → 浪费 = 0.736
+直接算：0.5·log(0.5/0.1)+0.5·log(0.5/0.9) = 1.16−0.424 = <span class="hl">0.736</span> ✅ 一致
+
+<span class="c"># 非负性（Jensen 不等式，log 凹函数）</span>
+D = −E_P[log(q/p)] ≤ −log(E_P[q/p]) = −log(Σq) = −log 1 = <span class="hl">0</span>
+等号 ⇔ P = Q
+
+<span class="c"># 不对称：D(P‖Q)=0.736 ≠ D(Q‖P)=0.531（权重换 p→q）</span>
+<span class="c"># 分类 one-hot 时 H(P)=0 → KL = −Σ y·log ŷ = CrossEntropyLoss！</span></pre>
+
+<div class="fig">
+<svg viewBox="0 0 720 262" role="img" aria-label="Jensen不等式与KL非负性几何图解">
+  <defs>
+    <marker id="sC-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+  </defs>
+
+  <!-- 坐标系与 log 凹曲线 -->
+  <path class="ax" d="M70 212 L670 212" marker-end="url(#sC-ar)"/>
+  <path class="ax" d="M70 212 L70 44" marker-end="url(#sC-ar)"/>
+  <text class="ts" x="664" y="234" text-anchor="end">x</text>
+  <text class="ts" transform="rotate(-90 40 128)" x="40" y="128" text-anchor="middle">log(x)</text>
+  <path d="M100 200 C 240 80 420 60 620 55" stroke="#0FDC78" stroke-width="2.5" fill="none"/>
+  <text class="tsh" x="600" y="44" text-anchor="end">log 曲线（凹：越往后越平）</text>
+
+  <!-- 弦 AB 与两个关键点 -->
+  <path d="M212 128 L474 63" stroke="#5B5B66" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
+  <circle cx="212" cy="128" r="5" fill="var(--surface)" stroke="#5B5B66" stroke-width="2"/>
+  <circle cx="474" cy="63" r="5" fill="var(--surface)" stroke="#5B5B66" stroke-width="2"/>
+  <text class="ts" x="212" y="150" text-anchor="middle">A</text>
+  <text class="ts" x="474" y="85" text-anchor="middle">B</text>
+  <circle cx="338" cy="84" r="5" fill="#0FDC78"/>
+  <text class="tsh" x="338" y="70" text-anchor="middle">曲线上的 log(E[X])</text>
+  <circle cx="343" cy="96" r="5" fill="var(--surface)" stroke="#5B5B66" stroke-width="2"/>
+  <text class="ts" x="420" y="116" text-anchor="middle">弦上的 E[log X]</text>
+  <path d="M338 90 L338 102" stroke="#5B5B66" stroke-width="1.5" fill="none" marker-end="url(#sC-ar)"/>
+  <text class="ts" x="316" y="104" text-anchor="end">这段 ≥ 0</text>
+
+  <!-- 结论区 -->
+  <line class="mut" x1="70" y1="246" x2="670" y2="246" stroke="none"/>
+  <text class="fmh" x="360" y="254" text-anchor="middle">凹函数：log(E[X]) ≥ E[log X]  →  E_P[log(q/p)] ≤ log 1 = 0  →  D_KL ≥ 0 ✅</text>
+</svg>
+<div class="fig-cap">图 15 · Jensen 不等式的几何：弦永远压不过曲线 —— KL 散度"非负"的真正来源</div>
+</div>
+
+<div class="note">🎯 <strong>一句话本质</strong>：训练神经网络 = 最小化 D_KL(真实 ‖ 模型)，让模型分布去贴合真实分布。GAN 判别器、知识蒸馏 KL(学生‖教师)、VAE 的 ELBO 全部源于这一个公式。</div>
+
+<h3>5.4 前向 KL vs 反向 KL：方向决定行为</h3>
+<div class="fig">
+<svg viewBox="0 0 720 306" role="img" aria-label="前向与反向KL对比图">
+  <text class="th" x="190" y="40" text-anchor="middle">前向 KL(P ‖ Q)：均值覆盖</text>
+  <path class="ax" d="M 60 210 L 330 210"/>
+  <path d="M 65 210 Q 95 207 112 165 Q 132 112 152 165 Q 168 206 190 210 Q 212 211 228 178 Q 252 136 276 178 Q 298 208 328 210" stroke="var(--text)" stroke-width="2" fill="none"/>
+  <path d="M 65 210 Q 130 152 196 152 Q 262 152 328 210" stroke="#0FDC78" stroke-width="2.5" fill="none" stroke-dasharray="7 5"/>
+  <text class="ts" x="132" y="104" text-anchor="middle">P</text>
+  <text class="tsh" x="196" y="144" text-anchor="middle">Q</text>
+  <text class="ts" x="195" y="238" text-anchor="middle">Q 被拉宽压扁，把两个峰都罩住</text>
+  <text class="tsh" x="195" y="262" text-anchor="middle">P 有质量处 Q 必须跟 → 防漏模式</text>
+  <text class="th" x="530" y="40" text-anchor="middle">反向 KL(Q ‖ P)：模式寻求</text>
+  <path class="ax" d="M 400 210 L 670 210"/>
+  <path d="M 405 210 Q 435 207 452 165 Q 472 112 492 165 Q 508 206 530 210 Q 552 211 568 178 Q 592 136 616 178 Q 638 208 668 210" stroke="var(--text)" stroke-width="2" fill="none"/>
+  <path d="M 428 210 Q 458 146 488 146 Q 518 146 548 210" stroke="#0FDC78" stroke-width="2.5" fill="none" stroke-dasharray="7 5"/>
+  <text class="ts" x="592" y="130" text-anchor="middle">P</text>
+  <text class="tsh" x="488" y="138" text-anchor="middle">Q</text>
+  <text class="ts" x="535" y="238" text-anchor="middle">Q 收窄贴紧左峰，右峰直接放弃</text>
+  <text class="tsh" x="535" y="262" text-anchor="middle">Q 有质量处 P 必须接得住 → 不浪费</text>
+  <text class="ts" x="360" y="294" text-anchor="middle">对称的公式，不对称的惩罚：前向强迫 Q 覆盖 P · 反向允许 Q 挑一个模式钻进去</text>
+</svg>
+<div class="fig-cap">图 16 · 同一个双峰 P，KL 方向不同 → Q 行为完全不同</div>
+</div>
+<table>
+<tr><th></th><th>前向 KL(P‖Q)</th><th>反向 KL(Q‖P)</th></tr>
+<tr><td>期望权重</td><td>按 p 加权（P 有质量处都算账）</td><td>按 q 加权（只算 Q 自己的地盘）</td></tr>
+<tr><td>行为</td><td>zero-avoiding：宁可糊不能漏</td><td>zero-forcing：贴紧一个模式</td></tr>
+<tr><td>别名</td><td>均值覆盖 mean-seeking</td><td>模式寻求 mode-seeking</td></tr>
+<tr><td>应用</td><td>最大似然训练（MLE）</td><td>扩散模型 / DPO（防生成糊）</td></tr>
+</table>
+
+<h3>5.5 协方差与相关系数</h3>
+<div class="fig">
+<svg viewBox="0 0 720 300" role="img" aria-label="协方差与相关系数散点图">
+  <text class="th" x="140" y="40" text-anchor="middle">ρ = +0.9 正相关</text>
+  <path class="ax" d="M 60 190 L 232 190"/><path class="ax" d="M 60 190 L 60 70"/>
+  <path d="M 70 182 L 226 82" stroke="#0FDC78" stroke-width="2" stroke-dasharray="6 5" fill="none"/>
+  <circle cx="78" cy="176" r="4" fill="#5B5B66"/><circle cx="96" cy="166" r="4" fill="#5B5B66"/>
+  <circle cx="112" cy="150" r="4" fill="#5B5B66"/><circle cx="130" cy="146" r="4" fill="#5B5B66"/>
+  <circle cx="146" cy="130" r="4" fill="#5B5B66"/><circle cx="162" cy="124" r="4" fill="#5B5B66"/>
+  <circle cx="180" cy="108" r="4" fill="#5B5B66"/><circle cx="198" cy="96" r="4" fill="#5B5B66"/>
+  <circle cx="216" cy="86" r="4" fill="#5B5B66"/><circle cx="104" cy="138" r="4" fill="#5B5B66"/>
+  <circle cx="188" cy="132" r="4" fill="#5B5B66"/><circle cx="140" cy="164" r="4" fill="#5B5B66"/>
+  <text class="ts" x="140" y="218" text-anchor="middle">X 涨 Y 也涨（同向）</text>
+  <text class="tsh" x="140" y="242" text-anchor="middle">Cov(X,Y) &gt; 0</text>
+  <text class="th" x="408" y="40" text-anchor="middle">ρ = −0.9 负相关</text>
+  <path class="ax" d="M 328 190 L 500 190"/><path class="ax" d="M 328 190 L 328 70"/>
+  <path d="M 338 82 L 494 182" stroke="#0FDC78" stroke-width="2" stroke-dasharray="6 5" fill="none"/>
+  <circle cx="346" cy="86" r="4" fill="#5B5B66"/><circle cx="364" cy="96" r="4" fill="#5B5B66"/>
+  <circle cx="380" cy="110" r="4" fill="#5B5B66"/><circle cx="398" cy="116" r="4" fill="#5B5B66"/>
+  <circle cx="414" cy="130" r="4" fill="#5B5B66"/><circle cx="430" cy="138" r="4" fill="#5B5B66"/>
+  <circle cx="448" cy="150" r="4" fill="#5B5B66"/><circle cx="466" cy="164" r="4" fill="#5B5B66"/>
+  <circle cx="484" cy="176" r="4" fill="#5B5B66"/><circle cx="372" cy="130" r="4" fill="#5B5B66"/>
+  <circle cx="456" cy="116" r="4" fill="#5B5B66"/><circle cx="408" cy="98" r="4" fill="#5B5B66"/>
+  <text class="ts" x="408" y="218" text-anchor="middle">X 涨 Y 跌（反向）</text>
+  <text class="tsh" x="408" y="242" text-anchor="middle">Cov(X,Y) &lt; 0</text>
+  <text class="th" x="592" y="40" text-anchor="middle">ρ ≈ 0 不相关</text>
+  <path class="ax" d="M 512 190 L 684 190"/><path class="ax" d="M 512 190 L 512 70"/>
+  <circle cx="530" cy="106" r="4" fill="#5B5B66"/><circle cx="550" cy="162" r="4" fill="#5B5B66"/>
+  <circle cx="570" cy="90" r="4" fill="#5B5B66"/><circle cx="588" cy="142" r="4" fill="#5B5B66"/>
+  <circle cx="606" cy="112" r="4" fill="#5B5B66"/><circle cx="624" cy="172" r="4" fill="#5B5B66"/>
+  <circle cx="642" cy="96" r="4" fill="#5B5B66"/><circle cx="662" cy="150" r="4" fill="#5B5B66"/>
+  <circle cx="544" cy="132" r="4" fill="#5B5B66"/><circle cx="596" cy="174" r="4" fill="#5B5B66"/>
+  <circle cx="616" cy="84" r="4" fill="#5B5B66"/><circle cx="654" cy="124" r="4" fill="#5B5B66"/>
+  <text class="ts" x="598" y="218" text-anchor="middle">各走各的，无趋势</text>
+  <text class="tsh" x="598" y="242" text-anchor="middle">Cov(X,Y) ≈ 0</text>
+  <text class="fm" x="360" y="278" text-anchor="middle">Cov = E[(X−E[X])(Y−E[Y])] · ρ = Cov/(σₓ·σᵧ) ∈ [−1,+1]</text>
+</svg>
+<div class="fig-cap">图 17 · 散点的走向就是协方差的符号；ρ 归一化去掉量纲</div>
+</div>
+
+<pre>Cov(X,Y) = E[(X−E[X])(Y−E[Y])] = E[XY] − E[X]·E[Y]
+正偏离×正偏离 = + → 同向 Cov&gt;0；正×负 = − → 反向 Cov&lt;0
+
+ρ = Cov / (σₓ·σᵧ)   <span class="c"># 量纲约掉，强制 [−1,+1] 才可比较</span>
+ρ=+1 完美正相关 · ρ=0 无线性关系（≠独立！）· ρ=−1 完美负相关
+⚠️ 相关 ≠ 因果（冰淇淋销量与溺水率同涨，真凶是夏天）</pre>
+</section>
+
+<!-- ================= 第六章 ================= -->
+<section id="ch6">
+<h2>六、复杂度 <span class="tag">O(·)</span></h2>
+<p>大 O 描述算法<strong>增长趋势</strong>，忽略常数与低阶项，只保留最高阶。</p>
+
+<div class="fig">
+<svg viewBox="0 0 720 336" role="img" aria-label="复杂度增长曲线对比图">
+  <defs>
+    <marker id="s6-ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#5B5B66"/></marker>
+  </defs>
+  <!-- 坐标轴：横轴=数据量 n，纵轴=耗时/计算次数 -->
+  <path class="ax" d="M90 290 L676 290" marker-end="url(#s6-ar)"/>
+  <path class="ax" d="M90 290 L90 34" marker-end="url(#s6-ar)"/>
+  <text class="ts" x="676" y="312" text-anchor="end">数据量 n →</text>
+  <text class="ts" transform="rotate(-90 36 168)" x="36" y="168" text-anchor="middle">耗时 / 计算次数</text>
+
+  <!-- 四条增长曲线：O(1) 水平 / O(log n) 缓升 / O(n) 直线 / O(n²) 陡升 -->
+  <path d="M90 260 L660 260" stroke="var(--text-muted)" stroke-width="2.5" stroke-dasharray="2 4" fill="none"/>
+  <path d="M90 290 Q260 215 660 200" stroke="var(--brand-text)" stroke-width="2.5" stroke-dasharray="6 4" fill="none"/>
+  <path d="M90 290 L660 120" stroke="var(--brand)" stroke-width="2.5" fill="none"/>
+  <path d="M90 290 Q375 290 660 40" stroke="#E8862E" stroke-width="3" fill="none"/>
+  <text class="num" x="666" y="264">O(1)</text>
+  <text class="num" x="666" y="204">O(log n)</text>
+  <text class="num" x="666" y="124">O(n)</text>
+  <text class="num" x="666" y="44" fill="#E8862E">O(n²)</text>
+  <text class="ts" x="575" y="64" text-anchor="middle" fill="#E8862E">n² 爆炸增长</text>
+
+  <!-- 图例：白话解释每条曲线的含义 -->
+  <rect x="112" y="42" width="300" height="130" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+  <path d="M126 66 L154 66" stroke="var(--text-muted)" stroke-width="2.5" stroke-dasharray="2 4" fill="none"/>
+  <text class="ts" x="162" y="70">O(1) 常数 · 按下标秒取，n 再大也不变</text>
+  <path d="M126 98 L154 98" stroke="var(--brand-text)" stroke-width="2.5" stroke-dasharray="6 4" fill="none"/>
+  <text class="ts" x="162" y="102">O(log n) 对数 · 二分查找，每次砍一半</text>
+  <path d="M126 130 L154 130" stroke="var(--brand)" stroke-width="2.5" fill="none"/>
+  <text class="ts" x="162" y="134">O(n) 线性 · 遍历一遍，翻倍就翻倍</text>
+  <path d="M126 162 L154 162" stroke="#E8862E" stroke-width="3" fill="none"/>
+  <text class="ts" x="162" y="166" fill="#E8862E">O(n²) 平方 · 两两比较，翻倍变四倍</text>
+</svg>
+<div class="fig-cap">图 18 · 复杂度增长曲线 —— n 一旦变大，O(n²) 立刻甩开所有曲线；这就是大模型避免显式矩阵求逆（O(n³)）的原因</div>
+</div>
+
+<pre>O(1) 常数   → 数组按下标访问
+O(log n)    → 二分查找
+O(n) 线性   → 遍历数据集一个 epoch
+O(n²) 平方  → 两两比较（相似度矩阵）
+O(n³) 立方  → 矩阵求逆（大模型避免显式求逆的原因）
+
+f(n) = 3n² + 100n + 5000 = <span class="hl">O(n²)</span>   <span class="c"># n=100万 时 3n²=3万亿 占绝对主导</span></pre>
+</section>
+
+<!-- ================= 第七章 ================= -->
+<section id="ch7">
+<h2>七、一页速记卡 <span class="tag">MEMO</span></h2>
+<table>
+<tr><th>类别</th><th>只需记住</th></tr>
+<tr><td>数字</td><td>维度定形状：() 标量 → (n,) 向量 → (m,n) 矩阵 → (a,b,c…) 张量；<code>len(set(X))</code> = 基数</td></tr>
+<tr><td>集合</td><td>∪ 或 · ∩ 与 · \ 减 · |X| 个数</td></tr>
+<tr><td>运算</td><td>ᵀ 转置 · ⁻¹ 逆 · ⊙ 按位乘 · ⟨⟩ 点积 = 余弦基 · ‖·‖ₚ 范数（p 定形状）</td></tr>
+<tr><td>微积分</td><td>导数=斜率 · 偏导=单方向 · 梯度=全方向最陡（w ← w−η∇L）· 积分=面积</td></tr>
+<tr><td>概率</td><td>期望=加权重心 · 方差=E[X²]−(E[X])² · 熵=平均意外 · KL=编码浪费（≥0 不对称）</td></tr>
+<tr><td>复杂度</td><td>只看最高阶项：n² ≫ n ≫ log n ≫ 1</td></tr>
+</table>
+<div class="note">四个项目里的符号地图：反向传播用 <strong>∇+∂</strong> · 交叉熵损失用 <strong>H+D_KL</strong> · 检索相似度用 <strong>⟨x,y⟩+‖·‖₂</strong> · FER 输出层宽度 = <strong>|X|=7</strong> · 模型延迟估算用 <strong>O(·)</strong>。</div>
+</section>
+</div>
+<footer>D2L 符号表可视化笔记 · 生成于 f:\deeplearn · 配合四个 CV 项目实战使用</footer>
+</body>
+</html>
