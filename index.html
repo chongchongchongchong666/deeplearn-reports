@@ -55,6 +55,37 @@
   }
   footer { margin-top: 2.6rem; padding-top: 1.2rem; border-top: 1px solid var(--rule);
     font-size: .8rem; color: var(--muted); text-align: center; }
+
+  /* ---- 在线系统区块 ---- */
+  .sysbar {
+    background: linear-gradient(135deg, rgba(79,110,247,.06), rgba(16,185,129,.06));
+    border: 1px solid rgba(79,110,247,.18); border-radius: 16px;
+    padding: 1.1rem 1.2rem 1.2rem; margin-bottom: 1.6rem;
+  }
+  .syshead { font-weight: 800; font-size: 1rem; display: flex; align-items: center;
+    gap: .6rem; flex-wrap: wrap; }
+  .sysnote { font-weight: 400; font-size: .78rem; color: var(--muted); }
+  .sysgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: .9rem; margin-top: .8rem; }
+  .syscard {
+    display: flex; gap: .8rem; align-items: flex-start; text-decoration: none;
+    background: rgba(255,255,255,.85); border-radius: 13px; padding: .95rem 1rem;
+    border: 1px solid rgba(79,110,247,.15); transition: transform .2s, box-shadow .2s;
+  }
+  .syscard:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(79,110,247,.16); }
+  .syscard .ico { font-size: 1.6rem; line-height: 1.2; }
+  .syscard h2 { font-size: .98rem; font-weight: 700; color: var(--ink); margin-bottom: .2rem; }
+  .syscard p { font-size: .82rem; color: var(--muted); line-height: 1.55; }
+  .syscard .url {
+    display: inline-block; margin-top: .45rem; font-size: .72rem; font-family: Consolas, monospace;
+    color: var(--accent); background: rgba(79,110,247,.09); border: 1px solid rgba(79,110,247,.2);
+    padding: .1rem .5rem; border-radius: 6px;
+  }
+  .syscard.face .ico { filter: drop-shadow(0 0 6px rgba(79,110,247,.4)); }
+  .syscard.helmet .ico { filter: drop-shadow(0 0 6px rgba(16,185,129,.4)); }
+  .syswarn { margin-top: .85rem; font-size: .74rem; color: #b7791f;
+    background: rgba(245,158,11,.1); border: 1px dashed rgba(245,158,11,.4);
+    border-radius: 8px; padding: .4rem .7rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -63,6 +94,30 @@
   <h1>📄 计算机视觉项目<span class="grad">报告中心</span></h1>
   <p class="sub">深度学习实验、数据飞轮重训与七大项目总览——全部报告在线浏览，点击卡片即可打开。</p>
   <p class="sub" style="margin-top:-1.4rem;font-size:.82rem">🌐 线上地址：<a href="https://chongchongchongchong666.github.io/deeplearn-reports/" style="color:var(--accent);font-weight:600">chongchongchongchong666.github.io/deeplearn-reports</a> ｜ 📦 仓库：<a href="https://github.com/chongchongchongchong666/deeplearn-reports" style="color:var(--accent);font-weight:600">GitHub</a></p>
+
+  <!-- 在线系统入口（本地服务，需在电脑上启动后访问） -->
+  <div class="sysbar">
+    <div class="syshead">🖥️ 在线系统 <span class="sysnote">运行在本机，点击卡片直接打开</span></div>
+    <div class="sysgrid">
+      <a class="syscard face" href="http://127.0.0.1:5000" target="_blank">
+        <span class="ico">🔐</span>
+        <div class="sysbody">
+          <h2>FaceVision 人脸门禁系统</h2>
+          <p>实时人脸识别 + 表情识别；照片采集入库后，画面直接显示姓名，类门禁实名通行。</p>
+          <span class="url">http://127.0.0.1:5000</span>
+        </div>
+      </a>
+      <a class="syscard helmet" href="http://127.0.0.1:5001" target="_blank">
+        <span class="ico">🪖</span>
+        <div class="sysbody">
+          <h2>HelmetVision 头盔监管系统</h2>
+          <p>骑手头盔检测工作台：图片/视频/实时识别、轨迹跟踪违规事件与告警中心。</p>
+          <span class="url">http://127.0.0.1:5001</span>
+        </div>
+      </a>
+    </div>
+    <div class="syswarn">⚠️ 两个系统为本机 Flask/FastAPI 服务。GitHub Pages 为远程托管，打开卡片会跳转到你电脑的本机地址，需先启动服务才可访问。</div>
+  </div>
 
   <div class="grid">
     <a class="card" href="./seven-projects-overview/seven-projects-overview.html">
