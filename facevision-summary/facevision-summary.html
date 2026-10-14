@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaceVision 人脸智能分析系统 · 项目总结</title>
+<style>
+  /* ============ 基础与主题：渐变玻璃拟态 ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", -apple-system, sans-serif;
+    color: #e8eefc;
+    background: linear-gradient(135deg, #0b1023 0%, #131a3a 45%, #1b1440 100%);
+    min-height: 100vh; padding: 40px 20px 80px; line-height: 1.7;
+  }
+  body::before, body::after {
+    content: ""; position: fixed; border-radius: 50%;
+    filter: blur(120px); opacity: .32; z-index: -1;
+  }
+  body::before { width: 440px; height: 440px; background: #6d5cff; top: -130px; left: -110px; }
+  body::after  { width: 380px; height: 380px; background: #41d6ff; bottom: -120px; right: -80px; }
+
+  .wrap { max-width: 1020px; margin: 0 auto; }
+
+  /* ============ 顶部 ============ */
+  .hero { text-align: center; margin-bottom: 36px; }
+  .hero .badge {
+    display: inline-block; padding: 5px 18px; border-radius: 999px;
+    background: rgba(109,92,255,.25); border: 1px solid rgba(140,124,255,.5);
+    font-size: 13px; letter-spacing: 2px; color: #c9c1ff; margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-size: 36px; letter-spacing: 1px;
+    background: linear-gradient(90deg, #8b7bff, #41d6ff, #7af5c4);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { color: #9fb0d6; margin-top: 10px; font-size: 15.5px; max-width: 720px; margin-left: auto; margin-right: auto; }
+  .hero .date { color: #6f7fa8; font-size: 13px; margin-top: 6px; }
+
+  /* ============ KPI ============ */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 30px; }
+  .kpi {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    backdrop-filter: blur(14px); border-radius: 16px; padding: 18px 14px; text-align: center;
+  }
+  .kpi .v { font-size: 22px; font-weight: 700; color: #7af5c4; }
+  .kpi .v.blue { color: #6db8ff; }
+  .kpi .v.purple { color: #b3a4ff; }
+  .kpi .v.gold { color: #ffc56d; }
+  .kpi .k { font-size: 12.5px; color: #8fa1c9; margin-top: 5px; }
+
+  /* ============ 区块 ============ */
+  section {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    backdrop-filter: blur(16px); border-radius: 20px; padding: 26px 28px; margin-bottom: 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.28);
+  }
+  section h2 { font-size: 20px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  section h2 .ico {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    background: linear-gradient(135deg, #6d5cff, #41d6ff); font-size: 17px; flex-shrink: 0;
+  }
+  section h3 { font-size: 16px; color: #ffd58a; margin: 18px 0 10px; }
+  p.lead { color: #c2d0ef; font-size: 15px; }
+
+  /* ============ 功能网格 ============ */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fcard {
+    background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.11);
+    border-radius: 14px; padding: 16px 18px;
+  }
+  .fcard .t { font-weight: 700; font-size: 15.5px; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .fcard .d { color: #a9b8dd; font-size: 14px; margin-top: 6px; }
+  .fcard .t .e { font-size: 19px; }
+
+  /* ============ 表格 ============ */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.09); }
+  th { color: #9fb0d6; font-weight: 600; background: rgba(255,255,255,.04); }
+  td { color: #dfe7fa; word-break: break-all; }
+  code {
+    font-family: Consolas, monospace; background: rgba(65,214,255,.12); color: #7ee0ff;
+    padding: 1px 7px; border-radius: 6px; font-size: 13px; word-break: break-all;
+  }
+
+  /* ============ 架构流程 ============ */
+  .arch { display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .node {
+    flex: 1; min-width: 165px; text-align: center; padding: 16px 10px; border-radius: 14px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+  }
+  .node .e { font-size: 26px; }
+  .node .n { font-weight: 700; font-size: 15px; margin-top: 6px; }
+  .node .s { font-size: 12.5px; color: #8fa1c9; margin-top: 4px; }
+  .arrow { align-self: center; font-size: 22px; color: #41d6ff; font-weight: 700; }
+
+  /* ============ 时间线 ============ */
+  .timeline { position: relative; padding-left: 34px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 11px; top: 6px; bottom: 6px; width: 3px;
+    background: linear-gradient(#6d5cff, #41d6ff, #7af5c4); border-radius: 3px;
+  }
+  .step { position: relative; padding-bottom: 20px; }
+  .step:last-child { padding-bottom: 0; }
+  .step .dot {
+    position: absolute; left: -34px; top: 2px; width: 25px; height: 25px; border-radius: 50%;
+    background: #1a2246; border: 3px solid #7af5c4; display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; color: #7af5c4;
+  }
+  .step .t { font-weight: 700; font-size: 15px; color: #fff; }
+  .step .d { color: #a9b8dd; font-size: 14px; margin-top: 3px; }
+
+  /* ============ 图片 ============ */
+  .shot {
+    width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,.16);
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  }
+  .caption { text-align: center; color: #8fa1c9; font-size: 13px; margin-top: 8px; }
+  .figrow { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; align-items: start; }
+  .qrbox { text-align: center; }
+  .qrbox img { width: 190px; border-radius: 12px; border: 6px solid #fff; }
+
+  .note {
+    background: rgba(255,197,109,.1); border: 1px dashed rgba(255,197,109,.5);
+    border-radius: 12px; padding: 12px 16px; font-size: 14px; color: #ffe1ae; margin-top: 14px;
+  }
+  footer { text-align: center; color: #66759c; font-size: 13px; margin-top: 34px; }
+
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .grid2 { grid-template-columns: 1fr; }
+    .figrow { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 27px; }
+    .arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 顶部 ================= -->
+  <div class="hero">
+    <div class="badge">PROJECT 06 · FACEVISION</div>
+    <h1>FaceVision 人脸智能分析系统</h1>
+    <p>检测 → 识别 → 表情 → 门禁式 Web 工作台：一个完整的多任务计算机视觉项目，从零搭建到公网部署全程记录</p>
+    <div class="date">项目路径：f:\deeplearn\projects\06_facevision ｜ 总结日期：2026-10-14</div>
+  </div>
+
+  <!-- ================= KPI ================= -->
+  <div class="kpis">
+    <div class="kpi"><div class="v">3 任务</div><div class="k">检测 + 识别 + 表情<br>三级推理流水线</div></div>
+    <div class="kpi"><div class="v blue">≈60ms</div><div class="k">CPU 单帧全链路<br>约 15fps 实时</div></div>
+    <div class="kpi"><div class="v purple">8 接口</div><div class="k">REST API<br>Flask 网关</div></div>
+    <div class="kpi"><div class="v gold">公网 HTTPS</div><div class="k">手机扫码即可用<br>门禁式体验</div></div>
+  </div>
+
+  <!-- ================= 项目定位 ================= -->
+  <section>
+    <h2><span class="ico">🎯</span>项目是什么</h2>
+    <p class="lead">
+      <b>FaceVision</b> 是一个跑在电脑上的「人脸门禁系统」：摄像头/上传图片进来，
+      <b>同时</b>输出「这是谁（身份）+ 此刻什么表情」，配合人脸库实现
+      <b>登记一次、之后刷脸显示姓名</b> 的门禁体验，最终通过 Cloudflare 隧道
+      暴露成 HTTPS 公网地址，<b>手机扫码即可使用手机自己的摄像头</b>。
+    </p>
+    <div class="note">
+      定位差异：01~05 都是单一模型/单任务的训练项目；06 的重点是<b>多模型工程化整合</b>——
+      三个独立训练的 ONNX 模型串成流水线、加 Web 服务、加人脸库、加实时通道、再部署到公网，
+      是「从算法到产品」的完整闭环演练。
+    </div>
+  </section>
+
+  <!-- ================= 核心功能 ================= -->
+  <section>
+    <h2><span class="ico">🧩</span>核心功能（四大标签页）</h2>
+    <div class="grid2">
+      <div class="fcard">
+        <div class="t"><span class="e">🎥</span>实时识别（门禁模式）</div>
+        <div class="d">浏览器开摄像头，约 15fps 逐帧推理；已入库的人显示<b>绿色框 + 姓名 + 置信度 + 表情</b>，陌生人显示橙框「未知」；识别到的人自动推入右侧「通行记录」时间线。</div>
+      </div>
+      <div class="fcard">
+        <div class="t"><span class="e">🖼</span>图片分析</div>
+        <div class="d">上传/拖拽图片 → 服务端返回逐脸 JSON + 标注图；每张脸给出<b>身份、表情（7 类）、置信度</b>。</div>
+      </div>
+      <div class="fcard">
+        <div class="t"><span class="e">📚</span>人脸库（门禁登记）</div>
+        <div class="d">输入姓名 + 采集照片/摄像头拍照 → 提取 128 维 SFace 特征入库；支持列表查看与删除，<b>库随服务重启持久保留</b>。</div>
+      </div>
+      <div class="fcard">
+        <div class="t"><span class="e">🧠</span>模型说明</div>
+        <div class="d">页面内置四层架构讲解（采集 → 检测 → 识别/分类 → 展示），演示即教学。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 技术架构 ================= -->
+  <section>
+    <h2><span class="ico">⚙️</span>技术架构：三级推理流水线</h2>
+    <div class="arch">
+      <div class="node"><div class="e">📷</div><div class="n">输入</div><div class="s">摄像头帧 / 上传图片<br>EXIF 方向校正 + 降采样</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="e">🔍</div><div class="n">① YuNet 检测</div><div class="s">OpenCV DNN 人脸框<br>CPU &lt;10ms</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="e">🧬</div><div class="n">② SFace 识别</div><div class="s">128 维特征<br>与人脸库余弦匹配</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="e">😊</div><div class="n">③ FER+ 表情</div><div class="s">7 分类<br>平静/高兴/惊讶…</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="e">🖥</div><div class="n">④ Web 展示</div><div class="s">Flask 网关 + 前端 Canvas<br>画框渲染</div></div>
+    </div>
+    <h3>关键设计</h3>
+    <table>
+      <tr><th>全 CPU 推理</th><td>三个模型都是轻量 ONNX（合计约 14MB），RTX 4060 上反而不如 CPU 稳定，实测 CPU 单帧全链路约 60ms，够 15fps 实时</td></tr>
+      <tr><th>双通道接口</th><td><code>/api/analyze</code>（带标注图，图片分析用）与 <code>/api/frame</code>（只回 JSON，实时通道专用）分离，保证帧率</td></tr>
+      <tr><th>特征缓存</th><td>人脸库只存特征向量，注册后加载即用；逐帧匹配是纯向量运算，开销可忽略</td></tr>
+      <tr><th>降采样</th><td>最长边压到 640 再检测，坐标映射回原图，大幅提升大图检测稳定性</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= API 清单 ================= -->
+  <section>
+    <h2><span class="ico">🔌</span>REST API（8 个）</h2>
+    <table>
+      <tr><th style="width:36%">接口</th><th>作用</th></tr>
+      <tr><td><code>GET  /</code></td><td>Web 工作台首页</td></tr>
+      <tr><td><code>POST /api/analyze</code></td><td>图片全量分析：逐脸 JSON + 标注图 + 耗时</td></tr>
+      <tr><td><code>POST /api/frame</code></td><td>实时轻量帧推理（只回 JSON）</td></tr>
+      <tr><td><code>POST /api/register</code></td><td>人脸入库：姓名 + 照片 → 128 维特征</td></tr>
+      <tr><td><code>GET  /api/persons</code></td><td>人脸库列表</td></tr>
+      <tr><td><code>DELETE /api/persons/&lt;id&gt;</code></td><td>删除库中某人</td></tr>
+      <tr><td><code>GET  /api/stats</code></td><td>会话统计：识别数、表情分布、耗时、同行名单</td></tr>
+      <tr><td><code>GET  /api/health</code></td><td>健康检查：模型就绪状态、库规模</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= 我做了什么（时间线） ================= -->
+  <section>
+    <h2><span class="ico">🛠</span>我做了什么（建设历程）</h2>
+    <div class="timeline">
+      <div class="step"><div class="dot">1</div>
+        <div class="t">从零搭建三级推理流水线</div>
+        <div class="d">YuNet 检测 + SFace 识别 + FER+ 表情三个 ONNX 模型整合为 <code>cvengine</code> 推理层；模型下载/校验脚本一键就位。</div>
+      </div>
+      <div class="step"><div class="dot">2</div>
+        <div class="t">Flask 网关 + 人脸库</div>
+        <div class="d">8 个 REST 接口；SQLite/JSON 持久化人脸特征，重启不丢。</div>
+      </div>
+      <div class="step"><div class="dot">3</div>
+        <div class="t">Web 工作台前端</div>
+        <div class="d">四大标签页（实时识别/图片分析/人脸库/模型说明），Canvas 实时画框，通行记录时间线。</div>
+      </div>
+      <div class="step"><div class="dot">4</div>
+        <div class="t">摄像头实时识别验证</div>
+        <div class="d">后端链路实测 10/10 帧检出、往返均值约 50ms（约 20fps），画框/姓名/表情全部正常，用户确认「可以正常识别」。</div>
+      </div>
+      <div class="step"><div class="dot">5</div>
+        <div class="t">公网部署：Cloudflare 隧道</div>
+        <div class="d">quick tunnel 把本机 5000 端口穿到公网 HTTPS，手机用流量也能访问；摄像头在 HTTPS 下才被浏览器允许调用。</div>
+      </div>
+      <div class="step"><div class="dot">6</div>
+        <div class="t">可用性工程：一键启动 + 开机自启</div>
+        <div class="d"><code>一键启动人脸系统.bat</code> + <code>start_facevision.ps1</code>：自动拉起服务 → 拉起隧道 → 抓取新网址 → 生成二维码；启动文件夹里配了开机静默自启（.vbs）。启动器已预置<b>命名隧道自适应</b>逻辑。</div>
+      </div>
+      <div class="step"><div class="dot">7</div>
+        <div class="t">手机端适配与 Bug 修复（最新）</div>
+        <div class="d">修复手机拍照入库失败：<b>① EXIF 方向校正</b>——手机竖拍照像素是横躺的，原逻辑不读 EXIF 导致 YuNet 漏检，新增 <code>_orient_exif()</code> 按标记真正旋转像素（原地写回零拷贝，降采样前处理）；<b>② 新增「📷 拍照入库」按钮</b>（capture=user 直接弹前置相机）。三用例验证全过。</div>
+      </div>
+      <div class="step"><div class="dot">8</div>
+        <div class="t">固定域名方案（进行中）</div>
+        <div class="d">EU.org 免费域名 <code>facevision.eu.org</code> 已提交审核 + Cloudflare 站点已添加（NS 已预填）。审核通过后创建<b>命名隧道</b>，网址永久固定，二维码一次打印终身有效。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 效果展示 ================= -->
+  <section>
+    <h2><span class="ico">📸</span>效果展示</h2>
+    <div class="figrow">
+      <div>
+        <img class="shot" src="assets/demo_face.jpg" alt="多脸场景分析效果">
+        <div class="caption">图片分析效果：多人场景逐脸识别身份 + 表情 + 置信度</div>
+      </div>
+      <div class="qrbox">
+        <img src="assets/qr.png" alt="手机访问二维码">
+        <div class="caption">手机扫码入口<br>（临时隧道地址，重启会变）</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 技术栈 ================= -->
+  <section>
+    <h2><span class="ico">📚</span>技术栈清单</h2>
+    <table>
+      <tr><th style="width:30%">层</th><th>选型</th></tr>
+      <tr><td>推理引擎</td><td>OpenCV DNN（YuNet / FER+）+ ONNX Runtime（SFace），全部 CPU 推理</td></tr>
+      <tr><td>后端</td><td>Python + Flask，8 个 REST 接口，base64 JSON 传输</td></tr>
+      <tr><td>前端</td><td>原生 HTML/CSS/JS + Canvas 实时画框（无框架，轻量易读）</td></tr>
+      <tr><td>存储</td><td>人脸库持久化（特征向量）；会话统计内存维护</td></tr>
+      <tr><td>部署</td><td>Cloudflare quick tunnel（HTTPS 公网）→ 目标：命名隧道 + EU.org 固定域名</td></tr>
+      <tr><td>可用性</td><td>一键启动脚本 + Windows 开机计划自启 + 自动二维码生成</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= 当前状态 ================= -->
+  <section>
+    <h2><span class="ico">✅</span>当前状态</h2>
+    <div class="grid2">
+      <div class="fcard"><div class="t"><span class="e">🟢</span>服务在线</div><div class="d">06 服务（5000）+ 隧道双进程运行，健康检查 200，三模型就绪，人脸库 3 人。</div></div>
+      <div class="fcard"><div class="t"><span class="e">🟢</span>手机端可用</div><div class="d">竖拍入库修复已生效，扫码 → 拍照入库 → 刷脸显示姓名，门禁链路完整。</div></div>
+      <div class="fcard"><div class="t"><span class="e">🟡</span>固定域名审核中</div><div class="d">facevision.eu.org 等待 EU.org 人工审核（请求号 20261014172453-arf-42658），通过后切命名隧道。</div></div>
+      <div class="fcard"><div class="t"><span class="e">⚠️</span>使用前提</div><div class="d">电脑必须开机且服务在跑（自启已配好）；临时网址重启后会变，以二维码为准。</div></div>
+    </div>
+  </section>
+
+  <footer>
+    FaceVision 人脸智能分析系统 · 项目总结 ｜ deeplearn 系列第 06 篇 ｜ 2026-10-14
+  </footer>
+
+</div>
+</body>
+</html>
